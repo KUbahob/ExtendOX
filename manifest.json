@@ -1,0 +1,15 @@
+{
+  "name": "ExtendOX",
+  "short_name": "ExtendOX",
+  "description": "Tic-Tac-Toe on a board that keeps growing.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    { "src": "icons/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

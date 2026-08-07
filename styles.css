@@ -1,0 +1,332 @@
+/* ============================================================
+   ExtendOX — design tokens (from "Typogrophy & Colours.jpg")
+   ============================================================ */
+:root{
+  --bg:              #FFFFFF;
+  --ink:             #000000;
+  --red:             #EA5A47;                /* Player X (cross)  */
+  --blue:            #4472C4;                /* Player O (circle) */
+  --ext:             rgba(217,217,217,.9);   /* D9D9D9 @ 90% — extension bar */
+  --ext-sep:         #C2C2C2;                /* separators drawn inside a bar */
+  --toggle-on:       rgba(68,114,196,.75);   /* 4472C4 75% */
+  --toggle-off:      rgba(234,90,71,.75);    /* EA5A47 75% */
+  --clock-blue-off:  rgba(68,114,196,.25);
+  --clock-blue-on:   rgba(68,114,196,.5);
+  --clock-red-off:   rgba(234,90,71,.25);
+  --clock-red-on:    rgba(234,90,71,.5);
+  --play:            rgba(146,208,80,.5);    /* 92D050 50% */
+  --surface-soft:    rgba(0,0,0,.03);        /* settings & imprint background */
+  --chip:            #F2F2F2;
+
+  --r:               15px;                   /* Effects → Rounding 15 px */
+  /* Effects → Shadow 0 / 1 / 4 / 2 @ 25 %. CSS renders that noticeably heavier
+     than Figma does, so the alpha is tuned down to match the mock-ups.        */
+  --shadow:          0 1px 4px 2px rgba(0,0,0,.12);
+
+  --fs-small: 12px;   /* imprint                            */
+  --fs-body:  13px;   /* long-form copy (tutorial)          */
+  --fs-mid:   17px;   /* clocks, end-game pop-up, list rows */
+  --fs-std:   20px;   /* standard label / heading / button  */
+
+  --pad:      22px;   /* screen side padding                */
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%;background:#fff}
+body{
+  display:flex;align-items:center;justify-content:center;
+  /* Open Sans covers Latin + Cyrillic; the rest fall through per character to
+     the system Chinese / Devanagari faces. */
+  font-family:'Open Sans','Segoe UI','Microsoft YaHei','PingFang SC','Nirmala UI',
+              'Noto Sans SC','Noto Sans Devanagari',system-ui,-apple-system,sans-serif;
+  font-size:var(--fs-std);color:var(--ink);overflow:hidden;
+}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+/* every icon is block-level: an inline <svg> sits on the text baseline, which
+   pushes it a few px above the centre of its button. */
+svg{display:block}
+.tint{display:flex;align-items:center;justify-content:center}
+
+#app{
+  position:relative;
+  width:min(100vw,430px);
+  height:100dvh;max-height:960px;
+  background:var(--bg);
+  display:flex;flex-direction:column;overflow:hidden;
+  user-select:none;-webkit-user-select:none;touch-action:manipulation;
+}
+@media (min-width:520px) and (min-height:780px){
+  #app{border-radius:26px;box-shadow:0 10px 44px rgba(0,0,0,.16)}
+}
+@media (orientation:landscape) and (max-height:540px){
+  #app{width:100vw;max-height:none;border-radius:0;box-shadow:none}
+  .screen{width:100%;max-width:560px;margin-inline:auto}
+}
+
+/* ---------------------------- generic frame ------------------------------ */
+.screen{
+  position:relative;flex:1;min-height:0;
+  display:flex;flex-direction:column;
+  padding:max(18px,env(safe-area-inset-top)) var(--pad) max(20px,env(safe-area-inset-bottom));
+}
+.screen.scroll{overflow-y:auto;overscroll-behavior:contain}
+.sp{flex:0 0 auto}
+
+/* -------------------------------- pieces --------------------------------- */
+.card{background:#fff;border-radius:var(--r);box-shadow:var(--shadow)}
+
+.iconbtn{
+  width:68px;height:44px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;gap:4px;
+  background:#fff;border-radius:var(--r);box-shadow:var(--shadow);
+  transition:transform .12s ease;
+}
+.iconbtn:active{transform:scale(.95)}
+.iconbtn[disabled]{opacity:.3;cursor:default}
+.iconbtn[disabled]:active{transform:none}
+.iconbtn.off{opacity:.3}          /* switched off in the settings, still tappable */
+.iconbtn.flat{width:34px;height:34px;box-shadow:none;border-radius:9px}
+.iconbtn.mini-btn{width:48px;height:34px;border-radius:11px}
+.emo24{font-size:22px;line-height:1}
+
+.btn-play{
+  background:var(--play);border-radius:var(--r);box-shadow:var(--shadow);
+  font-size:var(--fs-std);font-weight:700;color:var(--ink);
+  padding:11px 28px;transition:transform .12s ease;
+}
+.btn-play:active{transform:scale(.97)}
+
+.title{font-size:var(--fs-std);font-weight:700;text-align:center}
+
+/* the assets used straight from ./icons/ */
+.logo-img{display:block;width:98px;height:98px;margin-bottom:2px}
+.wordmark-img{display:block;height:24px;width:auto}
+.wordmark-img.big{height:28px}
+.party-img{display:block;width:112px;height:112px;flex:0 0 auto}
+
+/* ============================================================
+   HOME
+   ============================================================ */
+.home-top{display:flex;justify-content:space-between;align-items:flex-start;flex:0 0 auto}
+.home-brand{
+  flex:0 0 auto;margin-top:-6px;
+  display:flex;flex-direction:column;align-items:center;gap:0;
+}
+.settings-card{flex:0 0 auto;padding:18px 20px;display:flex;flex-direction:column;gap:16px}
+.screen.scroll .settings-card{margin-bottom:16px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.row-label{font-size:var(--fs-std)}
+
+.toggle{
+  width:62px;height:34px;border-radius:999px;position:relative;flex:0 0 auto;
+  background:var(--toggle-off);transition:background .18s ease;
+}
+.toggle.on{background:var(--toggle-on)}
+.toggle i{position:absolute;top:3px;left:3px;width:28px;height:28px;border-radius:50%;
+  background:#fff;transition:left .18s ease}
+.toggle.on i{left:31px}
+
+.chip{
+  background:var(--chip);border-radius:12px;padding:7px 16px;
+  font-size:var(--fs-std);min-width:82px;text-align:center;
+  font-variant-numeric:tabular-nums;flex:0 0 auto;
+}
+.chip.off{opacity:.5}
+.numchip{display:inline-flex;align-items:baseline;justify-content:center;gap:5px}
+.numchip .num{
+  width:2.3ch;border:0;background:none;padding:0;margin:0;outline:none;
+  font:inherit;color:inherit;text-align:right;font-variant-numeric:tabular-nums;
+}
+.numchip .num:focus{color:var(--blue)}
+.numchip .unit{font-size:14px;opacity:.55}
+
+/* ---------------- playing-mode dropdown ---------------- */
+/* the chip may shrink and clip its grey hint rather than push out of the row */
+.selwrap{position:relative;flex:0 1 auto;min-width:0}
+.selchip{
+  display:inline-flex;align-items:baseline;gap:7px;max-width:100%;
+  padding:7px 11px 7px 16px;min-width:0;
+  transition:transform .12s ease,background .15s ease;
+}
+.selchip:active{transform:scale(.97)}
+.selchip.open{background:#E9E9E9}
+.selchip .num{white-space:nowrap;flex:0 0 auto}
+.selchip .unit{font-size:14px;opacity:.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.selchip .caret{align-self:center;display:flex;opacity:.45;flex:0 0 auto;transition:transform .18s ease}
+.selchip.open .caret{transform:rotate(180deg)}
+
+.selmenu{
+  position:absolute;z-index:30;top:calc(100% + 8px);right:0;min-width:100%;
+  background:#fff;border-radius:var(--r);box-shadow:var(--shadow);
+  overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;
+  animation:menuin .16s ease both;
+}
+@keyframes menuin{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+/* flipped above the chip when there is no room below */
+.selmenu.up{top:auto;bottom:calc(100% + 8px);animation-name:menuup}
+@keyframes menuup{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.selmenu button{
+  width:100%;display:flex;align-items:baseline;gap:8px;white-space:nowrap;
+  padding:12px 18px;font-size:var(--fs-mid);text-align:left;
+}
+.selmenu button + button{border-top:1px solid rgba(0,0,0,.7)}
+.selmenu .hint{font-size:14px;opacity:.5;margin-left:auto}
+.selmenu .sel{background:var(--surface-soft)}
+.selmenu .sel .name{font-weight:700}
+
+/* ============================================================
+   GAME
+   ============================================================ */
+.topbar{
+  flex:0 0 48px;height:48px;
+  background:#fff;border-radius:var(--r);box-shadow:var(--shadow);
+  display:flex;align-items:center;justify-content:space-between;padding:0 12px;
+}
+.clocks{display:flex;gap:10px}
+.clock{
+  font-size:var(--fs-mid);line-height:1;border-radius:999px;padding:7px 13px;
+  font-variant-numeric:tabular-nums;border:1.5px solid transparent;
+  transition:background .25s ease;
+}
+.clock.blue{background:var(--clock-blue-off)}
+.clock.blue.active{background:var(--clock-blue-on)}
+.clock.red{background:var(--clock-red-off)}
+.clock.red.active{background:var(--clock-red-on)}
+.clock.dead{background:#fff;border-color:var(--ink)}
+
+/* the same safe distance as on the sides is kept above and below the board */
+.board-area{
+  position:relative;flex:1;min-height:0;margin:var(--pad) 0;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+/* padding-bottom is set from JS so the bottom note never covers the board */
+.board-area.zoomable{touch-action:none;cursor:grab}
+.board-area.zoomable:active{cursor:grabbing}
+
+/* flex-shrink MUST stay 0: the cells are absolutely positioned, so a shrunk box
+   would still paint them at full width while transform-origin (50% 50%) moved to
+   the middle of the shrunk box — the board would slide off to the right. */
+.board{position:relative;flex:0 0 auto;transform-origin:50% 50%;transition:transform .2s ease}
+.board.nudge,.board.static{transition:none}
+.board.faded{opacity:.25}
+.board .cell{position:absolute;display:flex;align-items:center;justify-content:center}
+.board .cell.live{cursor:pointer}
+.board .cell.live:active{background:rgba(0,0,0,.04)}
+.board .gl{position:absolute}
+.glyph{display:block}
+.glyph.pop{animation:pop .2s cubic-bezier(.3,1.7,.5,1)}
+@keyframes pop{from{transform:scale(.35);opacity:0}to{transform:scale(1);opacity:1}}
+
+.ghost{position:absolute;background:var(--ext);animation:fadein .22s ease both;transition:filter .1s ease}
+.ghost[data-act]{cursor:pointer}
+.ghost[data-act]:active{filter:brightness(.93)}
+.ghost .gsep{position:absolute;background:var(--ext-sep)}
+.ghost .gplus{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+
+.winline{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
+
+.notice{
+  position:absolute;left:var(--pad);right:var(--pad);
+  bottom:calc(max(20px,env(safe-area-inset-bottom)) + 60px);
+  background:#fff;border-radius:var(--r);box-shadow:var(--shadow);
+  padding:11px 16px;font-size:var(--fs-mid);line-height:1.35;text-align:center;
+  animation:fadein .2s ease both;
+}
+
+.bottombar{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+
+/* zoom controls – only shown while the board is scaled down */
+.zoombar{
+  display:flex;align-items:center;height:44px;
+  background:#fff;border-radius:var(--r);box-shadow:var(--shadow);
+}
+.zoombar.hidden{visibility:hidden}
+.zoombar button{width:46px;height:44px;display:flex;align-items:center;justify-content:center;
+  transition:transform .12s ease}
+.zoombar button:active{transform:scale(.9)}
+.zoombar .zsep{width:1px;height:22px;background:rgba(0,0,0,.15)}
+
+/* winner / draw announcement */
+.announce{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:14px;
+  padding:clamp(14px,5.5vh,46px) 0 4px;animation:fadein .3s ease both}
+.announce .party{display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.announce .emo-draw{font-size:84px;line-height:1;width:112px;text-align:center}
+.announce .col{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+/* wraps rather than overflows — some translations are longer than "Wins by time" */
+.announce .who{display:flex;align-items:center;gap:9px;font-size:var(--fs-std);font-weight:700;line-height:1.25}
+.announce .who svg{flex:0 0 auto}
+
+/* end-game pop-up */
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:20}
+.dialog{
+  background:#fff;border-radius:var(--r);box-shadow:var(--shadow);
+  padding:20px 22px 16px;width:min(252px,calc(100% - 44px));text-align:center;
+  animation:dialogin .18s ease both;
+}
+@keyframes dialogin{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+.dialog p{margin:0 0 16px;font-size:var(--fs-mid);line-height:1.35}
+/* wraps instead of overflowing when a translation needs two long action words */
+.dialog .acts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 30px}
+.dialog .acts button{font-size:var(--fs-mid);font-weight:700}
+.dialog .acts .cancel{color:var(--red)}
+
+/* ============================================================
+   SETTINGS / TUTORIAL / IMPRINT
+   ============================================================ */
+.subhead{display:flex;align-items:center;gap:14px;margin-bottom:24px;flex:0 0 auto}
+.subhead .title{flex:1;margin-right:82px}
+
+.list{background:var(--surface-soft);border-radius:var(--r);overflow:hidden;
+  flex:0 0 auto;margin-top:auto}
+.list button{width:100%;display:flex;align-items:center;gap:14px;padding:15px 16px;
+  font-size:var(--fs-mid);text-align:left;position:relative}
+.list button + button::before{content:'';position:absolute;left:16px;right:16px;top:0;
+  height:1px;background:rgba(0,0,0,.7)}
+.list .sp{flex:1}
+
+.tut h3{font-size:var(--fs-mid);font-weight:700;margin:26px 0 12px;flex:0 0 auto}
+.tut h3:first-of-type{margin-top:2px}
+.tut .card{padding:16px 18px;font-size:var(--fs-body);line-height:1.8;margin-bottom:14px;flex:0 0 auto}
+.tut .card.last{margin-bottom:28px}
+.tut .mini{display:flex;justify-content:center;margin-top:12px}
+.tut .keyrow{display:flex;align-items:flex-start;gap:16px;padding:9px 0}
+.tut .keyrow .k{flex:0 0 76px;display:flex;align-items:center;gap:8px}
+.tut .keyrow .k.stackk{flex-direction:column;align-items:flex-start;gap:8px}
+.tut .keyrow .k .clock{font-size:11px;padding:5px 9px}
+.tut .keyrow .t{flex:1;font-size:var(--fs-body);line-height:1.7;padding-top:3px}
+
+.imprint{background:var(--surface-soft);border-radius:var(--r);
+  padding:16px 16px 24px;font-size:var(--fs-small);line-height:1.7;flex:0 0 auto}
+.imprint h4{font-size:var(--fs-small);margin:16px 0 4px}
+.imprint p{margin:0 0 8px}
+.imprint .ph{margin-top:18px;opacity:.55}
+
+/* ============================================================
+   Very narrow phones — scale down a notch so every setting row
+   stays on one line. Must stay last: it overrides the rules above.
+   ============================================================ */
+@media (max-width:359px){
+  :root{--fs-std:17px;--fs-mid:15px;--pad:18px}
+  .settings-card{padding:16px}
+  .chip{min-width:70px;padding:7px 12px}
+  .selchip{padding:7px 10px 7px 12px}
+  .numchip .unit,.selchip .unit{font-size:13px}
+  .row{gap:10px}
+}
+
+/* ============================================================
+   Short screens (phone in landscape) — the home screen has to fit
+   a brand block, a button and a three-row card into ~375 px.
+   ============================================================ */
+@media (max-height:560px){
+  .logo-img{width:60px;height:60px;margin-bottom:0}
+  .wordmark-img.big{height:22px}
+  .home-brand{margin-top:-2px}
+  .home-top .iconbtn{height:38px}
+  .settings-card{padding:14px 20px;gap:12px}
+  .screen-home{overflow-y:auto}
+  .announce{padding:10px 0 2px}
+  .announce .party,.party-img{width:82px;height:82px}
+  .announce .emo-draw{font-size:62px;width:82px}
+}
