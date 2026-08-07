@@ -2,33 +2,1895 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
+<!-- ExtendOX build v25 -->
+<meta name="version" content="25" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#ffffff" />
 <title>ExtendOX</title>
 <meta name="description" content="Tic-Tac-Toe on a board that keeps growing. Get 4, 5 or 6 in a row." />
-
-<!-- add to home screen -->
 <link rel="manifest" href="manifest.json" />
-<link rel="icon" href="icons/logo.png" />
-<link rel="apple-touch-icon" href="icons/logo.png" />
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="ExtendOX" />
 <meta name="mobile-web-app-capable" content="yes" />
-
-<!-- preview card when the link is shared in a chat -->
 <meta property="og:title" content="ExtendOX" />
 <meta property="og:description" content="Tic-Tac-Toe on a board that keeps growing. Get 4, 5 or 6 in a row." />
 <meta property="og:type" content="website" />
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=23" />
+<style>
+/* ============================================================
+   ExtendOX — design tokens (from "Typogrophy & Colours.jpg")
+   ============================================================ */
+:root{
+  --bg:              #FFFFFF;
+  --ink:             #000000;
+  --red:             #EA5A47;                /* Player X (cross)  */
+  --blue:            #4472C4;                /* Player O (circle) */
+  --ext:             rgba(217,217,217,.9);   /* D9D9D9 @ 90% — extension bar */
+  --ext-sep:         #C2C2C2;                /* separators drawn inside a bar */
+  --toggle-on:       rgba(68,114,196,.75);   /* 4472C4 75% */
+  --toggle-off:      rgba(234,90,71,.75);    /* EA5A47 75% */
+  --clock-blue-off:  rgba(68,114,196,.25);
+  --clock-blue-on:   rgba(68,114,196,.5);
+  --clock-red-off:   rgba(234,90,71,.25);
+  --clock-red-on:    rgba(234,90,71,.5);
+  --play:            rgba(146,208,80,.5);    /* 92D050 50% */
+  --surface-soft:    rgba(0,0,0,.03);        /* settings & imprint background */
+  --chip:            #F2F2F2;
+
+  --r:               15px;                   /* Effects → Rounding 15 px */
+  /* Effects → Shadow 0 / 1 / 4 / 2 @ 25 %. CSS renders that noticeably heavier
+     than Figma does, so the alpha is tuned down to match the mock-ups.        */
+  --shadow:          0 1px 4px 2px rgba(0,0,0,.12);
+
+  --fs-small: 12px;   /* imprint                            */
+  --fs-body:  13px;   /* long-form copy (tutorial)          */
+  --fs-mid:   17px;   /* clocks, end-game pop-up, list rows */
+  --fs-std:   20px;   /* standard label / heading / button  */
+
+  --pad:      22px;   /* screen side padding                */
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%;background:#fff}
+body{
+  display:flex;align-items:center;justify-content:center;
+  /* Open Sans covers Latin + Cyrillic; the rest fall through per character to
+     the system Chinese / Devanagari faces. */
+  font-family:'Open Sans','Segoe UI','Microsoft YaHei','PingFang SC','Nirmala UI',
+              'Noto Sans SC','Noto Sans Devanagari',system-ui,-apple-system,sans-serif;
+  font-size:var(--fs-std);color:var(--ink);overflow:hidden;
+}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+/* every icon is block-level: an inline <svg> sits on the text baseline, which
+   pushes it a few px above the centre of its button. */
+svg{display:block}
+.tint{display:flex;align-items:center;justify-content:center}
+
+#app{
+  position:relative;
+  width:min(100vw,430px);
+  height:100dvh;max-height:960px;
+  background:var(--bg);
+  display:flex;flex-direction:column;overflow:hidden;
+  user-select:none;-webkit-user-select:none;touch-action:manipulation;
+}
+@media (min-width:520px) and (min-height:780px){
+  #app{border-radius:26px;box-shadow:0 10px 44px rgba(0,0,0,.16)}
+}
+@media (orientation:landscape) and (max-height:540px){
+  #app{width:100vw;max-height:none;border-radius:0;box-shadow:none}
+  .screen{width:100%;max-width:560px;margin-inline:auto}
+}
+
+/* ---------------------------- generic frame ------------------------------ */
+.screen{
+  position:relative;flex:1;min-height:0;
+  display:flex;flex-direction:column;
+  padding:max(18px,env(safe-area-inset-top)) var(--pad) max(20px,env(safe-area-inset-bottom));
+}
+.screen.scroll{overflow-y:auto;overscroll-behavior:contain}
+.sp{flex:0 0 auto}
+
+/* -------------------------------- pieces --------------------------------- */
+.card{background:#fff;border-radius:var(--r);box-shadow:var(--shadow)}
+
+.iconbtn{
+  width:68px;height:44px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;gap:4px;
+  background:#fff;border-radius:var(--r);box-shadow:var(--shadow);
+  transition:transform .12s ease;
+}
+.iconbtn:active{transform:scale(.95)}
+.iconbtn[disabled]{opacity:.3;cursor:default}
+.iconbtn[disabled]:active{transform:none}
+.iconbtn.off{opacity:.3}          /* switched off in the settings, still tappable */
+.iconbtn.flat{width:34px;height:34px;box-shadow:none;border-radius:9px}
+.iconbtn.mini-btn{width:48px;height:34px;border-radius:11px}
+.emo24{font-size:22px;line-height:1}
+
+.btn-play{
+  background:var(--play);border-radius:var(--r);box-shadow:var(--shadow);
+  font-size:var(--fs-std);font-weight:700;color:var(--ink);
+  padding:11px 28px;transition:transform .12s ease;
+}
+.btn-play:active{transform:scale(.97)}
+
+.title{font-size:var(--fs-std);font-weight:700;text-align:center}
+
+/* the assets used straight from ./icons/ */
+.logo-img{display:block;width:98px;height:98px;margin-bottom:2px}
+.wordmark-img{display:block;height:24px;width:auto}
+.wordmark-img.big{height:28px}
+.party-img{display:block;width:112px;height:112px;flex:0 0 auto}
+
+/* ============================================================
+   HOME
+   ============================================================ */
+.home-top{display:flex;justify-content:space-between;align-items:flex-start;flex:0 0 auto}
+.home-brand{
+  flex:0 0 auto;margin-top:-6px;
+  display:flex;flex-direction:column;align-items:center;gap:0;
+}
+.settings-card{flex:0 0 auto;padding:18px 20px;display:flex;flex-direction:column;gap:16px}
+.screen.scroll .settings-card{margin-bottom:16px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.row-label{font-size:var(--fs-std)}
+
+.toggle{
+  width:62px;height:34px;border-radius:999px;position:relative;flex:0 0 auto;
+  background:var(--toggle-off);transition:background .18s ease;
+}
+.toggle.on{background:var(--toggle-on)}
+.toggle i{position:absolute;top:3px;left:3px;width:28px;height:28px;border-radius:50%;
+  background:#fff;transition:left .18s ease}
+.toggle.on i{left:31px}
+
+.chip{
+  background:var(--chip);border-radius:12px;padding:7px 16px;
+  font-size:var(--fs-std);min-width:82px;text-align:center;
+  font-variant-numeric:tabular-nums;flex:0 0 auto;
+}
+.chip.off{opacity:.5}
+.numchip{display:inline-flex;align-items:baseline;justify-content:center;gap:5px}
+.numchip .num{
+  width:2.3ch;border:0;background:none;padding:0;margin:0;outline:none;
+  font:inherit;color:inherit;text-align:right;font-variant-numeric:tabular-nums;
+}
+.numchip .num:focus{color:var(--blue)}
+.numchip .unit{font-size:14px;opacity:.55}
+
+/* ---------------- playing-mode dropdown ---------------- */
+/* the chip may shrink and clip its grey hint rather than push out of the row */
+.selwrap{position:relative;flex:0 1 auto;min-width:0}
+.selchip{
+  display:inline-flex;align-items:baseline;gap:7px;max-width:100%;
+  padding:7px 11px 7px 16px;min-width:0;
+  transition:transform .12s ease,background .15s ease;
+}
+.selchip:active{transform:scale(.97)}
+.selchip.open{background:#E9E9E9}
+.selchip .num{white-space:nowrap;flex:0 0 auto}
+.selchip .unit{font-size:14px;opacity:.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.selchip .caret{align-self:center;display:flex;opacity:.45;flex:0 0 auto;transition:transform .18s ease}
+.selchip.open .caret{transform:rotate(180deg)}
+
+.selmenu{
+  position:absolute;z-index:30;top:calc(100% + 8px);right:0;min-width:100%;
+  background:#fff;border-radius:var(--r);box-shadow:var(--shadow);
+  overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;
+  animation:menuin .16s ease both;
+}
+@keyframes menuin{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+/* flipped above the chip when there is no room below */
+.selmenu.up{top:auto;bottom:calc(100% + 8px);animation-name:menuup}
+@keyframes menuup{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.selmenu button{
+  width:100%;display:flex;align-items:baseline;gap:8px;white-space:nowrap;
+  padding:12px 18px;font-size:var(--fs-mid);text-align:left;
+}
+.selmenu button + button{border-top:1px solid rgba(0,0,0,.7)}
+.selmenu .hint{font-size:14px;opacity:.5;margin-left:auto}
+.selmenu .sel{background:var(--surface-soft)}
+.selmenu .sel .name{font-weight:700}
+
+/* ============================================================
+   GAME
+   ============================================================ */
+.topbar{
+  flex:0 0 48px;height:48px;
+  background:#fff;border-radius:var(--r);box-shadow:var(--shadow);
+  display:flex;align-items:center;justify-content:space-between;padding:0 12px;
+}
+.clocks{display:flex;gap:10px}
+.clock{
+  font-size:var(--fs-mid);line-height:1;border-radius:999px;padding:7px 13px;
+  font-variant-numeric:tabular-nums;border:1.5px solid transparent;
+  transition:background .25s ease;
+}
+.clock.blue{background:var(--clock-blue-off)}
+.clock.blue.active{background:var(--clock-blue-on)}
+.clock.red{background:var(--clock-red-off)}
+.clock.red.active{background:var(--clock-red-on)}
+.clock.dead{background:#fff;border-color:var(--ink)}
+
+/* the same safe distance as on the sides is kept above and below the board */
+.board-area{
+  position:relative;flex:1;min-height:0;margin:var(--pad) 0;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+/* padding-bottom is set from JS so the bottom note never covers the board */
+.board-area.zoomable{touch-action:none;cursor:grab}
+.board-area.zoomable:active{cursor:grabbing}
+
+/* flex-shrink MUST stay 0: the cells are absolutely positioned, so a shrunk box
+   would still paint them at full width while transform-origin (50% 50%) moved to
+   the middle of the shrunk box — the board would slide off to the right. */
+.board{position:relative;flex:0 0 auto;transform-origin:50% 50%;transition:transform .2s ease}
+.board.nudge,.board.static{transition:none}
+.board.faded{opacity:.25}
+.board .cell{position:absolute;display:flex;align-items:center;justify-content:center}
+.board .cell.live{cursor:pointer}
+.board .cell.live:active{background:rgba(0,0,0,.04)}
+.board .gl{position:absolute}
+.glyph{display:block}
+.glyph.pop{animation:pop .2s cubic-bezier(.3,1.7,.5,1)}
+@keyframes pop{from{transform:scale(.35);opacity:0}to{transform:scale(1);opacity:1}}
+
+.ghost{position:absolute;background:var(--ext);animation:fadein .22s ease both;transition:filter .1s ease}
+.ghost[data-act]{cursor:pointer}
+.ghost[data-act]:active{filter:brightness(.93)}
+.ghost .gsep{position:absolute;background:var(--ext-sep)}
+.ghost .gplus{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+
+.winline{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
+
+.notice{
+  position:absolute;left:var(--pad);right:var(--pad);
+  bottom:calc(max(20px,env(safe-area-inset-bottom)) + 60px);
+  background:#fff;border-radius:var(--r);box-shadow:var(--shadow);
+  padding:11px 16px;font-size:var(--fs-mid);line-height:1.35;text-align:center;
+  animation:fadein .2s ease both;
+}
+
+.bottombar{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+
+/* zoom controls – only shown while the board is scaled down */
+.zoombar{
+  display:flex;align-items:center;height:44px;
+  background:#fff;border-radius:var(--r);box-shadow:var(--shadow);
+}
+.zoombar.hidden{visibility:hidden}
+.zoombar button{width:46px;height:44px;display:flex;align-items:center;justify-content:center;
+  transition:transform .12s ease}
+.zoombar button:active{transform:scale(.9)}
+.zoombar .zsep{width:1px;height:22px;background:rgba(0,0,0,.15)}
+
+/* winner / draw announcement */
+.announce{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:14px;
+  padding:clamp(14px,5.5vh,46px) 0 4px;animation:fadein .3s ease both}
+.announce .party{display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.announce .emo-draw{font-size:84px;line-height:1;width:112px;text-align:center}
+.announce .col{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+/* wraps rather than overflows — some translations are longer than "Wins by time" */
+.announce .who{display:flex;align-items:center;gap:9px;font-size:var(--fs-std);font-weight:700;line-height:1.25}
+.announce .who svg{flex:0 0 auto}
+
+/* end-game pop-up */
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:20}
+.dialog{
+  background:#fff;border-radius:var(--r);box-shadow:var(--shadow);
+  padding:20px 22px 16px;width:min(252px,calc(100% - 44px));text-align:center;
+  animation:dialogin .18s ease both;
+}
+@keyframes dialogin{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+.dialog p{margin:0 0 16px;font-size:var(--fs-mid);line-height:1.35}
+/* wraps instead of overflowing when a translation needs two long action words */
+.dialog .acts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 30px}
+.dialog .acts button{font-size:var(--fs-mid);font-weight:700}
+.dialog .acts .cancel{color:var(--red)}
+
+/* ============================================================
+   SETTINGS / TUTORIAL / IMPRINT
+   ============================================================ */
+.subhead{display:flex;align-items:center;gap:14px;margin-bottom:24px;flex:0 0 auto}
+.subhead .title{flex:1;margin-right:82px}
+
+.list{background:var(--surface-soft);border-radius:var(--r);overflow:hidden;
+  flex:0 0 auto;margin-top:auto}
+.list button{width:100%;display:flex;align-items:center;gap:14px;padding:15px 16px;
+  font-size:var(--fs-mid);text-align:left;position:relative}
+.list button + button::before{content:'';position:absolute;left:16px;right:16px;top:0;
+  height:1px;background:rgba(0,0,0,.7)}
+.list .sp{flex:1}
+
+.tut h3{font-size:var(--fs-mid);font-weight:700;margin:26px 0 12px;flex:0 0 auto}
+.tut h3:first-of-type{margin-top:2px}
+.tut .card{padding:16px 18px;font-size:var(--fs-body);line-height:1.8;margin-bottom:14px;flex:0 0 auto}
+.tut .card.last{margin-bottom:28px}
+.tut .mini{display:flex;justify-content:center;margin-top:12px}
+.tut .keyrow{display:flex;align-items:flex-start;gap:16px;padding:9px 0}
+.tut .keyrow .k{flex:0 0 76px;display:flex;align-items:center;gap:8px}
+.tut .keyrow .k.stackk{flex-direction:column;align-items:flex-start;gap:8px}
+.tut .keyrow .k .clock{font-size:11px;padding:5px 9px}
+.tut .keyrow .t{flex:1;font-size:var(--fs-body);line-height:1.7;padding-top:3px}
+
+.imprint{background:var(--surface-soft);border-radius:var(--r);
+  padding:16px 16px 24px;font-size:var(--fs-small);line-height:1.7;flex:0 0 auto}
+.imprint h4{font-size:var(--fs-small);margin:16px 0 4px}
+.imprint p{margin:0 0 8px}
+.imprint .ph{margin-top:18px;opacity:.55}
+/* which build this device is actually running — handy after an update */
+.imprint .build{margin-top:14px;opacity:.4;font-variant-numeric:tabular-nums}
+
+/* ============================================================
+   Very narrow phones — scale down a notch so every setting row
+   stays on one line. Must stay last: it overrides the rules above.
+   ============================================================ */
+@media (max-width:359px){
+  :root{--fs-std:17px;--fs-mid:15px;--pad:18px}
+  .settings-card{padding:16px}
+  .chip{min-width:70px;padding:7px 12px}
+  .selchip{padding:7px 10px 7px 12px}
+  .numchip .unit,.selchip .unit{font-size:13px}
+  .row{gap:10px}
+}
+
+/* ============================================================
+   Short screens (phone in landscape) — the home screen has to fit
+   a brand block, a button and a three-row card into ~375 px.
+   ============================================================ */
+@media (max-height:560px){
+  .logo-img{width:60px;height:60px;margin-bottom:0}
+  .wordmark-img.big{height:22px}
+  .home-brand{margin-top:-2px}
+  .home-top .iconbtn{height:38px}
+  .settings-card{padding:14px 20px;gap:12px}
+  .screen-home{overflow-y:auto}
+  .announce{padding:10px 0 2px}
+  .announce .party,.party-img{width:82px;height:82px}
+  .announce .emo-draw{font-size:62px;width:82px}
+}
+
+</style>
 </head>
 <body>
   <div id="app"></div>
-  <script src="i18n.js?v=23"></script>
-  <script src="app.js?v=23"></script>
+  <script>window.ExtendOX = { build: '25' };</script>
+  <script>
+/* =============================================================================
+   ExtendOX — translations.
+   Every user-visible string lives here. Values are either plain strings or
+   functions of the values that need interpolating.
+
+   Wording rule: keep the meaning exact and the length close to English, because
+   the layout is fixed. Where a literal translation would be much longer than
+   the English label (settings rows especially), a shorter phrase with the same
+   meaning is used instead.
+   ============================================================================= */
+'use strict';
+
+/* native name + the short code shown in grey next to it */
+const LANGS = {
+  en: { name: 'English',  code: 'EN' },
+  es: { name: 'Español',  code: 'ES' },
+  fr: { name: 'Français', code: 'FR' },
+  de: { name: 'Deutsch',  code: 'DE' },
+  zh: { name: '中文',      code: 'ZH' },
+  hi: { name: 'हिन्दी',      code: 'HI' },
+  ru: { name: 'Русский',  code: 'RU' },
+};
+const LANG_KEYS = Object.keys(LANGS);
+
+const T = {
+
+/* ---------------------------------------------------------------- English -- */
+en: {
+  playNow: 'Play Now', timeLimit: 'Time Limit', minutesPerPlayer: 'Minutes per player',
+  minUnit: 'min', mode: 'Mode',
+  modeFast: 'Fast', modeClassic: 'Classic', modePro: 'Pro',
+  toWin: n => `${n} to win`,
+
+  wins: 'Wins', winsByTime: 'Wins by time', draw: 'Draw', playAgain: 'Play Again',
+  endQuestion: 'Do you really want to end this game?', endYes: 'End', endNo: 'Cancel',
+  undoOffMsg: 'The undo button is switched off. You can switch it back on in the settings.',
+  goSettings: 'Settings', close: 'Close',
+  centreNotice: 'The very first mark cannot be placed in the middle of the grid.',
+  limitNotice: (w, h, what) => `Maximum board size (${w} × ${h} cells) reached – no further ${what} can be added.`,
+  limRow: 'row', limCol: 'column', limBoth: 'row or column',
+
+  settings: 'Settings', language: 'Language',
+  firstMarkOffCentre: 'First mark off-centre', undoButton: 'Undo button',
+  unlimitedBoard: 'Unlimited board', maxWidth: 'Maximum width', maxHeight: 'Maximum height',
+  cellsUnit: 'cells', tutorial: 'Tutorial', imprint: 'Imprint',
+
+  t_shortH: 'ExtendOX in short',
+  t_shortB: n => `Welcome to ExtendOX, an exciting mobile game that takes the classic "Tic Tac Toe" to a whole new level! Embrace the challenge as we begin with a 3x3 grid, but be prepared to extend it when a row or column fills up. Can you strategize and achieve the ultimate goal of getting ${n} in a row?<br>Let the epic matches begin!`,
+  t_modesH: 'Playing modes',
+  t_modesB: 'Pick a mode on the home screen. It decides how many marks in a row you need to win.',
+  t_modeWin: n => `${n} in a row to win`,
+  t_selected: 'selected',
+  t_modesFoot: 'Choosing a mode also sets the minutes per player and the maximum board size to values that suit it; both can still be changed afterwards.',
+  t_startH: 'Start',
+  t_startB: 'The game kicks off with Player O placing their mark on the 3x3 grid. To ensure fairness, the first mark cannot be placed in the middle of the grid – a rule you can switch off in the settings.',
+  t_heightH: 'Extending the height',
+  t_heightB1: 'Player X fills an entire column, triggering a grid height extension.',
+  t_heightB2: 'With the column complete, Player X gains the strategic advantage of choosing whether to extend the grid upwards or downwards. Only once the new row is placed may Player O continue.',
+  t_widthH: 'Extending the width',
+  t_widthB1: 'Player O fills an entire row, triggering a grid width extension.',
+  t_widthB2: 'With the row complete, Player O gains the strategic advantage of choosing whether to extend the grid to the left or right.',
+  t_bothH: 'Filling both at once',
+  t_bothB: 'A single mark can complete a column <b>and</b> a row. The player then owes the board both a new row <b>and</b> a new column – all four grey bars appear and both have to be placed before play continues.',
+  t_growH: 'How far it grows',
+  t_growB: (label, w, h) => `In <b>${label}</b> mode the board stops at ${w} columns and ${h} rows. Once that edge is reached, completing a line no longer opens the grey bars – a short note appears at the bottom of the screen instead and play carries straight on.<br><br>Both limits can be changed in the settings, or lifted completely with <b>Unlimited board</b>.`,
+  t_zoomH: 'Zoom & drag',
+  t_zoomB: 'As soon as the board no longer fits at full cell size, the cells shrink so that everything stays visible. Use the <b>–</b> and <b>+</b> buttons in the bottom bar, a pinch, or the mouse wheel to zoom in, and drag the board to move around. Zooming in stops at the original cell size, zooming out at the full board. After every mark the view returns to the full board automatically.',
+  t_winH: 'Winning',
+  t_winB: n => `In a nail-biting twist, Player X skillfully achieves the ultimate objective – ${n} marks in a row, securing a triumphant victory. A row, a column and both diagonals all count.`,
+  t_topH: 'Top Bar',
+  t_home: 'Home screen',
+  t_settingsRow: 'Settings – including this tutorial',
+  t_clock: 'Enabling the "Time Limit" feature imposes time restrictions on each player. Beware, if the timer runs out, you\'ll face defeat! Keep an eye on the bright clock, as it indicates whose turn it is.',
+  t_bottomH: 'Bottom Bar',
+  t_undo: 'Undo your last turn with the left button. It can be switched off in the settings.',
+  t_right: 'The right button displays the current activity through icons and indicates the turn with colours.',
+  t_place: 'Place your mark on the grid',
+  t_extend: 'Extend a row or a column',
+  t_extendBoth: 'Extend both a row and a column',
+  t_winner: 'Winner declaration',
+
+  i_provider: 'Provider', i_repBy: 'Represented by', i_contact: 'Contact',
+  i_vat: 'VAT ID', i_vatB: 'VAT identification number: DE 123 456 789',
+  i_liability: 'Liability for content',
+  i_liabilityB: 'As a service provider we are responsible for our own content on these pages under the general laws. We are not obliged to monitor transmitted or stored third-party information.',
+  i_links: 'Liability for links',
+  i_linksB: 'Our offer contains links to external websites over whose content we have no influence. The respective provider or operator of those pages is always responsible for their content.',
+  i_copyright: 'Copyright',
+  i_copyrightB: 'The content created by the site operators on these pages is subject to copyright. Any duplication, editing, distribution or use beyond the limits of copyright law requires written consent.',
+  i_privacy: 'Data protection',
+  i_privacyB: 'ExtendOX does not collect, store or transmit any personal data. The settings chosen in the game are stored locally on this device only.',
+  i_placeholder: 'Placeholder text – please replace it with the real provider details before publishing.',
+
+  a_back: 'Back', a_undo: 'Undo', a_zoomIn: 'Zoom in', a_zoomOut: 'Zoom out',
+},
+
+/* ---------------------------------------------------------------- Español -- */
+es: {
+  playNow: 'Jugar ahora', timeLimit: 'Límite de tiempo', minutesPerPlayer: 'Minutos por jugador',
+  minUnit: 'min', mode: 'Modo',
+  modeFast: 'Rápido', modeClassic: 'Clásico', modePro: 'Pro',
+  toWin: n => `${n} para ganar`,
+
+  wins: 'gana', winsByTime: 'gana por tiempo', draw: 'Empate', playAgain: 'Jugar otra vez',
+  endQuestion: '¿Seguro que quieres terminar esta partida?', endYes: 'Terminar', endNo: 'Cancelar',
+  undoOffMsg: 'El botón de deshacer está desactivado. Puedes volver a activarlo en los ajustes.',
+  goSettings: 'Ajustes', close: 'Cerrar',
+  centreNotice: 'La primera marca no se puede colocar en el centro del tablero.',
+  limitNotice: (w, h, what) => `Tamaño máximo del tablero (${w} × ${h} casillas) alcanzado: no se puede añadir otra ${what}.`,
+  limRow: 'fila', limCol: 'columna', limBoth: 'fila o columna',
+
+  settings: 'Ajustes', language: 'Idioma',
+  firstMarkOffCentre: 'Inicio no central', undoButton: 'Botón deshacer',
+  unlimitedBoard: 'Tablero ilimitado', maxWidth: 'Anchura máxima', maxHeight: 'Altura máxima',
+  cellsUnit: 'casillas', tutorial: 'Tutorial', imprint: 'Aviso legal',
+
+  t_shortH: 'ExtendOX en resumen',
+  t_shortB: n => `¡Bienvenido a ExtendOX, un emocionante juego para móvil que lleva el clásico "Tres en raya" a otro nivel! Empezamos con una cuadrícula de 3x3, pero prepárate para ampliarla cuando se llene una fila o una columna. ¿Sabrás idear una estrategia y lograr el objetivo final de conseguir ${n} en línea?<br>¡Que empiecen las grandes partidas!`,
+  t_modesH: 'Modos de juego',
+  t_modesB: 'Elige un modo en la pantalla de inicio. Decide cuántas marcas en línea necesitas para ganar.',
+  t_modeWin: n => `${n} en línea para ganar`,
+  t_selected: 'seleccionado',
+  t_modesFoot: 'Elegir un modo también ajusta los minutos por jugador y el tamaño máximo del tablero a valores adecuados; ambos se pueden cambiar después.',
+  t_startH: 'Inicio',
+  t_startB: 'La partida comienza cuando el jugador O coloca su marca en la cuadrícula de 3x3. Para que sea justo, la primera marca no se puede colocar en el centro: una regla que puedes desactivar en los ajustes.',
+  t_heightH: 'Ampliar la altura',
+  t_heightB1: 'El jugador X completa una columna entera y provoca una ampliación de la altura.',
+  t_heightB2: 'Con la columna completa, el jugador X obtiene la ventaja estratégica de elegir si amplía el tablero hacia arriba o hacia abajo. El jugador O solo puede continuar cuando se haya añadido la nueva fila.',
+  t_widthH: 'Ampliar la anchura',
+  t_widthB1: 'El jugador O completa una fila entera y provoca una ampliación de la anchura.',
+  t_widthB2: 'Con la fila completa, el jugador O obtiene la ventaja estratégica de elegir si amplía el tablero hacia la izquierda o hacia la derecha.',
+  t_bothH: 'Completar ambas a la vez',
+  t_bothB: 'Una sola marca puede completar una columna <b>y</b> una fila. Entonces el jugador debe añadir tanto una fila nueva <b>como</b> una columna nueva: aparecen las cuatro barras grises y hay que colocar ambas antes de seguir jugando.',
+  t_growH: 'Hasta dónde crece',
+  t_growB: (label, w, h) => `En el modo <b>${label}</b> el tablero se detiene en ${w} columnas y ${h} filas. Al llegar a ese límite, completar una línea ya no abre las barras grises: en su lugar aparece un breve aviso en la parte inferior de la pantalla y el juego continúa.<br><br>Ambos límites se pueden cambiar en los ajustes o quitar por completo con <b>Tablero ilimitado</b>.`,
+  t_zoomH: 'Zoom y arrastre',
+  t_zoomB: 'En cuanto el tablero ya no cabe con el tamaño completo de casilla, las casillas se reducen para que todo siga visible. Usa los botones <b>–</b> y <b>+</b> de la barra inferior, un pellizco o la rueda del ratón para acercar, y arrastra el tablero para moverte. El zoom se detiene en el tamaño original de casilla al acercar y en el tablero completo al alejar. Después de cada marca, la vista vuelve automáticamente al tablero completo.',
+  t_winH: 'Ganar',
+  t_winB: n => `En un giro emocionante, el jugador X logra el objetivo final: ${n} marcas en línea y una victoria triunfal. Cuentan una fila, una columna y ambas diagonales.`,
+  t_topH: 'Barra superior',
+  t_home: 'Pantalla de inicio',
+  t_settingsRow: 'Ajustes, incluido este tutorial',
+  t_clock: 'Activar la función "Límite de tiempo" impone un tiempo máximo a cada jugador. ¡Cuidado: si se acaba el tiempo, pierdes! Fíjate en el reloj más intenso, porque indica de quién es el turno.',
+  t_bottomH: 'Barra inferior',
+  t_undo: 'Deshaz tu última jugada con el botón izquierdo. Se puede desactivar en los ajustes.',
+  t_right: 'El botón derecho muestra la acción actual mediante iconos e indica el turno con colores.',
+  t_place: 'Coloca tu marca en el tablero',
+  t_extend: 'Ampliar una fila o una columna',
+  t_extendBoth: 'Ampliar una fila y una columna',
+  t_winner: 'Anuncio del ganador',
+
+  i_provider: 'Proveedor', i_repBy: 'Representado por', i_contact: 'Contacto',
+  i_vat: 'NIF-IVA', i_vatB: 'Número de identificación fiscal: DE 123 456 789',
+  i_liability: 'Responsabilidad por el contenido',
+  i_liabilityB: 'Como proveedor de servicios somos responsables de nuestro propio contenido en estas páginas conforme a la legislación general. No estamos obligados a supervisar la información de terceros transmitida o almacenada.',
+  i_links: 'Responsabilidad por los enlaces',
+  i_linksB: 'Nuestra oferta contiene enlaces a sitios web externos sobre cuyo contenido no tenemos influencia. El proveedor u operador de esas páginas es siempre el responsable de su contenido.',
+  i_copyright: 'Derechos de autor',
+  i_copyrightB: 'El contenido creado por los operadores del sitio en estas páginas está protegido por derechos de autor. Toda reproducción, edición, distribución o uso más allá de los límites legales requiere consentimiento por escrito.',
+  i_privacy: 'Protección de datos',
+  i_privacyB: 'ExtendOX no recoge, almacena ni transmite datos personales. Los ajustes elegidos en el juego se guardan únicamente de forma local en este dispositivo.',
+  i_placeholder: 'Texto de ejemplo: sustitúyelo por los datos reales del proveedor antes de publicar.',
+
+  a_back: 'Atrás', a_undo: 'Deshacer', a_zoomIn: 'Acercar', a_zoomOut: 'Alejar',
+},
+
+/* --------------------------------------------------------------- Français -- */
+fr: {
+  playNow: 'Jouer', timeLimit: 'Limite de temps', minutesPerPlayer: 'Minutes par joueur',
+  minUnit: 'min', mode: 'Mode',
+  modeFast: 'Rapide', modeClassic: 'Classique', modePro: 'Pro',
+  toWin: n => `${n} pour gagner`,
+
+  wins: 'gagne', winsByTime: 'gagne au temps', draw: 'Match nul', playAgain: 'Rejouer',
+  endQuestion: 'Voulez-vous vraiment terminer cette partie ?', endYes: 'Terminer', endNo: 'Annuler',
+  undoOffMsg: 'Le bouton annuler est désactivé. Vous pouvez le réactiver dans les réglages.',
+  goSettings: 'Réglages', close: 'Fermer',
+  centreNotice: 'La toute première marque ne peut pas être placée au centre de la grille.',
+  limitNotice: (w, h, what) => `Taille maximale de la grille (${w} × ${h} cases) atteinte : impossible d'ajouter une ${what} de plus.`,
+  limRow: 'ligne', limCol: 'colonne', limBoth: 'ligne ou colonne',
+
+  settings: 'Réglages', language: 'Langue',
+  firstMarkOffCentre: 'Départ hors du centre', undoButton: 'Bouton annuler',
+  unlimitedBoard: 'Grille illimitée', maxWidth: 'Largeur maximale', maxHeight: 'Hauteur maximale',
+  cellsUnit: 'cases', tutorial: 'Tutoriel', imprint: 'Mentions légales',
+
+  t_shortH: 'ExtendOX en bref',
+  t_shortB: n => `Bienvenue dans ExtendOX, un jeu mobile passionnant qui fait passer le classique « morpion » à un tout autre niveau ! On commence sur une grille 3x3, mais préparez-vous à l'agrandir dès qu'une ligne ou une colonne se remplit. Saurez-vous élaborer une stratégie et atteindre l'objectif ultime : ${n} à la suite ?<br>Que les grandes parties commencent !`,
+  t_modesH: 'Modes de jeu',
+  t_modesB: 'Choisissez un mode sur l\'écran d\'accueil. Il détermine combien de marques à la suite sont nécessaires pour gagner.',
+  t_modeWin: n => `${n} à la suite pour gagner`,
+  t_selected: 'sélectionné',
+  t_modesFoot: 'Choisir un mode règle aussi les minutes par joueur et la taille maximale de la grille sur des valeurs adaptées ; les deux restent modifiables ensuite.',
+  t_startH: 'Début',
+  t_startB: 'La partie commence lorsque le joueur O place sa marque sur la grille 3x3. Par souci d\'équité, la toute première marque ne peut pas être placée au centre – une règle désactivable dans les réglages.',
+  t_heightH: 'Agrandir la hauteur',
+  t_heightB1: 'Le joueur X remplit une colonne entière, ce qui déclenche un agrandissement en hauteur.',
+  t_heightB2: 'La colonne étant complète, le joueur X obtient l\'avantage stratégique de choisir s\'il agrandit la grille vers le haut ou vers le bas. Le joueur O ne peut continuer qu\'une fois la nouvelle ligne ajoutée.',
+  t_widthH: 'Agrandir la largeur',
+  t_widthB1: 'Le joueur O remplit une ligne entière, ce qui déclenche un agrandissement en largeur.',
+  t_widthB2: 'La ligne étant complète, le joueur O obtient l\'avantage stratégique de choisir s\'il agrandit la grille vers la gauche ou vers la droite.',
+  t_bothH: 'Les deux à la fois',
+  t_bothB: 'Une seule marque peut compléter une colonne <b>et</b> une ligne. Le joueur doit alors ajouter une nouvelle ligne <b>et</b> une nouvelle colonne : les quatre barres grises apparaissent et les deux doivent être placées avant de poursuivre.',
+  t_growH: 'Jusqu\'où elle grandit',
+  t_growB: (label, w, h) => `En mode <b>${label}</b>, la grille s'arrête à ${w} colonnes et ${h} lignes. Une fois cette limite atteinte, compléter une ligne n'ouvre plus les barres grises : une courte note apparaît en bas de l'écran et le jeu se poursuit directement.<br><br>Les deux limites se modifient dans les réglages, ou se suppriment complètement avec <b>Grille illimitée</b>.`,
+  t_zoomH: 'Zoom et déplacement',
+  t_zoomB: 'Dès que la grille ne tient plus à la taille de case complète, les cases rétrécissent pour que tout reste visible. Utilisez les boutons <b>–</b> et <b>+</b> de la barre inférieure, un pincement ou la molette pour zoomer, et faites glisser la grille pour vous déplacer. Le zoom avant s\'arrête à la taille de case d\'origine, le zoom arrière à la grille entière. Après chaque marque, la vue revient automatiquement à la grille entière.',
+  t_winH: 'Gagner',
+  t_winB: n => `Dans un dénouement palpitant, le joueur X atteint l'objectif ultime : ${n} marques à la suite et une victoire éclatante. Une ligne, une colonne et les deux diagonales comptent.`,
+  t_topH: 'Barre supérieure',
+  t_home: 'Écran d\'accueil',
+  t_settingsRow: 'Réglages, y compris ce tutoriel',
+  t_clock: 'Activer la « Limite de temps » impose un temps maximum à chaque joueur. Attention : si le temps s\'écoule, c\'est la défaite ! Surveillez l\'horloge la plus vive, elle indique à qui est le tour.',
+  t_bottomH: 'Barre inférieure',
+  t_undo: 'Annulez votre dernier coup avec le bouton de gauche. Il peut être désactivé dans les réglages.',
+  t_right: 'Le bouton de droite affiche l\'action en cours par des icônes et indique le tour par la couleur.',
+  t_place: 'Placez votre marque sur la grille',
+  t_extend: 'Agrandir d\'une ligne ou d\'une colonne',
+  t_extendBoth: 'Agrandir d\'une ligne et d\'une colonne',
+  t_winner: 'Annonce du vainqueur',
+
+  i_provider: 'Éditeur', i_repBy: 'Représenté par', i_contact: 'Contact',
+  i_vat: 'N° de TVA', i_vatB: 'Numéro d\'identification à la TVA : DE 123 456 789',
+  i_liability: 'Responsabilité du contenu',
+  i_liabilityB: 'En tant que prestataire de services, nous sommes responsables de nos propres contenus sur ces pages conformément au droit commun. Nous ne sommes pas tenus de surveiller les informations de tiers transmises ou stockées.',
+  i_links: 'Responsabilité des liens',
+  i_linksB: 'Notre offre contient des liens vers des sites externes dont nous ne maîtrisons pas le contenu. Le fournisseur ou l\'exploitant de ces pages en est toujours responsable.',
+  i_copyright: 'Droit d\'auteur',
+  i_copyrightB: 'Les contenus créés par les exploitants du site sur ces pages sont protégés par le droit d\'auteur. Toute reproduction, modification, diffusion ou utilisation au-delà des limites légales nécessite un accord écrit.',
+  i_privacy: 'Protection des données',
+  i_privacyB: 'ExtendOX ne collecte, ne stocke ni ne transmet aucune donnée personnelle. Les réglages choisis dans le jeu sont enregistrés uniquement en local sur cet appareil.',
+  i_placeholder: 'Texte d\'exemple – à remplacer par les véritables mentions de l\'éditeur avant publication.',
+
+  a_back: 'Retour', a_undo: 'Annuler', a_zoomIn: 'Zoom avant', a_zoomOut: 'Zoom arrière',
+},
+
+/* ---------------------------------------------------------------- Deutsch -- */
+de: {
+  playNow: 'Jetzt spielen', timeLimit: 'Zeitlimit', minutesPerPlayer: 'Minuten pro Spieler',
+  minUnit: 'Min.', mode: 'Modus',
+  modeFast: 'Schnell', modeClassic: 'Klassisch', modePro: 'Profi',
+  toWin: n => `${n} zum Sieg`,
+
+  wins: 'gewinnt', winsByTime: 'gewinnt nach Zeit', draw: 'Unentschieden', playAgain: 'Nochmal spielen',
+  endQuestion: 'Möchtest du dieses Spiel wirklich beenden?', endYes: 'Beenden', endNo: 'Abbrechen',
+  undoOffMsg: 'Die Rückgängig-Taste ist ausgeschaltet. Du kannst sie in den Einstellungen wieder aktivieren.',
+  goSettings: 'Einstellungen', close: 'Schließen',
+  centreNotice: 'Der allererste Zug darf nicht in die Mitte des Felds gesetzt werden.',
+  limitNotice: (w, h, what) => `Maximale Feldgröße (${w} × ${h} Felder) erreicht – es kann keine weitere ${what} hinzugefügt werden.`,
+  limRow: 'Zeile', limCol: 'Spalte', limBoth: 'Zeile oder Spalte',
+
+  settings: 'Einstellungen', language: 'Sprache',
+  firstMarkOffCentre: 'Erster Zug nicht mittig', undoButton: 'Rückgängig-Taste',
+  unlimitedBoard: 'Unbegrenztes Feld', maxWidth: 'Maximale Breite', maxHeight: 'Maximale Höhe',
+  cellsUnit: 'Felder', tutorial: 'Anleitung', imprint: 'Impressum',
+
+  t_shortH: 'ExtendOX in Kürze',
+  t_shortB: n => `Willkommen bei ExtendOX, einem spannenden Handyspiel, das den Klassiker „Tic Tac Toe“ auf ein ganz neues Niveau hebt! Wir starten auf einem 3x3-Feld, doch sei bereit, es zu erweitern, sobald sich eine Zeile oder Spalte füllt. Schaffst du es, klug zu planen und das große Ziel zu erreichen: ${n} in einer Reihe?<br>Auf zu epischen Partien!`,
+  t_modesH: 'Spielmodi',
+  t_modesB: 'Wähle auf dem Startbildschirm einen Modus. Er bestimmt, wie viele Zeichen in einer Reihe du zum Sieg brauchst.',
+  t_modeWin: n => `${n} in einer Reihe zum Sieg`,
+  t_selected: 'ausgewählt',
+  t_modesFoot: 'Ein Modus setzt auch die Minuten pro Spieler und die maximale Feldgröße auf passende Werte; beides lässt sich danach weiter ändern.',
+  t_startH: 'Start',
+  t_startB: 'Das Spiel beginnt damit, dass Spieler O sein Zeichen auf das 3x3-Feld setzt. Der Fairness halber darf der erste Zug nicht in die Mitte gesetzt werden – diese Regel kannst du in den Einstellungen ausschalten.',
+  t_heightH: 'Die Höhe erweitern',
+  t_heightB1: 'Spieler X füllt eine ganze Spalte und löst damit eine Erweiterung der Höhe aus.',
+  t_heightB2: 'Da die Spalte voll ist, hat Spieler X den strategischen Vorteil, zu wählen, ob das Feld nach oben oder nach unten wächst. Erst wenn die neue Zeile gesetzt ist, darf Spieler O weiterspielen.',
+  t_widthH: 'Die Breite erweitern',
+  t_widthB1: 'Spieler O füllt eine ganze Zeile und löst damit eine Erweiterung der Breite aus.',
+  t_widthB2: 'Da die Zeile voll ist, hat Spieler O den strategischen Vorteil, zu wählen, ob das Feld nach links oder nach rechts wächst.',
+  t_bothH: 'Beides auf einmal',
+  t_bothB: 'Ein einzelnes Zeichen kann eine Spalte <b>und</b> eine Zeile vollmachen. Dann schuldet der Spieler dem Feld sowohl eine neue Zeile <b>als auch</b> eine neue Spalte – alle vier grauen Balken erscheinen und beide müssen gesetzt werden, bevor es weitergeht.',
+  t_growH: 'Wie weit es wächst',
+  t_growB: (label, w, h) => `Im Modus <b>${label}</b> endet das Feld bei ${w} Spalten und ${h} Zeilen. Ist diese Grenze erreicht, öffnen sich beim Vollmachen einer Linie keine grauen Balken mehr – stattdessen erscheint kurz ein Hinweis am unteren Bildschirmrand und es geht direkt weiter.<br><br>Beide Grenzen lassen sich in den Einstellungen ändern oder mit <b>Unbegrenztes Feld</b> ganz aufheben.`,
+  t_zoomH: 'Zoomen & Ziehen',
+  t_zoomB: 'Sobald das Feld nicht mehr in voller Zellgröße passt, werden die Zellen kleiner, damit alles sichtbar bleibt. Zum Hineinzoomen nutzt du die Tasten <b>–</b> und <b>+</b> in der unteren Leiste, eine Zoomgeste oder das Mausrad; zum Bewegen ziehst du das Feld. Das Hineinzoomen endet bei der ursprünglichen Zellgröße, das Herauszoomen beim ganzen Feld. Nach jedem Zug kehrt die Ansicht automatisch zum ganzen Feld zurück.',
+  t_winH: 'Gewinnen',
+  t_winB: n => `In einer spannenden Wendung erreicht Spieler X das große Ziel: ${n} Zeichen in einer Reihe und damit ein triumphaler Sieg. Zeile, Spalte und beide Diagonalen zählen.`,
+  t_topH: 'Obere Leiste',
+  t_home: 'Startbildschirm',
+  t_settingsRow: 'Einstellungen – auch diese Anleitung',
+  t_clock: 'Mit dem „Zeitlimit“ bekommt jeder Spieler eine begrenzte Bedenkzeit. Vorsicht: Läuft die Uhr ab, hast du verloren! Achte auf die kräftiger gefärbte Uhr – sie zeigt, wer am Zug ist.',
+  t_bottomH: 'Untere Leiste',
+  t_undo: 'Mit der linken Taste machst du deinen letzten Zug rückgängig. Sie lässt sich in den Einstellungen ausschalten.',
+  t_right: 'Die rechte Taste zeigt mit Symbolen, was gerade zu tun ist, und mit der Farbe, wer am Zug ist.',
+  t_place: 'Setze dein Zeichen auf das Feld',
+  t_extend: 'Eine Zeile oder Spalte erweitern',
+  t_extendBoth: 'Eine Zeile und eine Spalte erweitern',
+  t_winner: 'Siegerbekanntgabe',
+
+  i_provider: 'Anbieter', i_repBy: 'Vertreten durch', i_contact: 'Kontakt',
+  i_vat: 'Umsatzsteuer-ID', i_vatB: 'Umsatzsteuer-Identifikationsnummer: DE 123 456 789',
+  i_liability: 'Haftung für Inhalte',
+  i_liabilityB: 'Als Diensteanbieter sind wir für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Wir sind nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen.',
+  i_links: 'Haftung für Links',
+  i_linksB: 'Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber verantwortlich.',
+  i_copyright: 'Urheberrecht',
+  i_copyrightB: 'Die durch die Seitenbetreiber erstellten Inhalte auf diesen Seiten unterliegen dem Urheberrecht. Vervielfältigung, Bearbeitung, Verbreitung und jede Verwertung außerhalb der Grenzen des Urheberrechts bedürfen der schriftlichen Zustimmung.',
+  i_privacy: 'Datenschutz',
+  i_privacyB: 'ExtendOX erhebt, speichert und überträgt keine personenbezogenen Daten. Die im Spiel gewählten Einstellungen werden ausschließlich lokal auf diesem Gerät gespeichert.',
+  i_placeholder: 'Platzhaltertext – bitte vor einer Veröffentlichung durch die echten Anbieterangaben ersetzen.',
+
+  a_back: 'Zurück', a_undo: 'Rückgängig', a_zoomIn: 'Vergrößern', a_zoomOut: 'Verkleinern',
+},
+
+/* ------------------------------------------------------------------- 中文 -- */
+zh: {
+  playNow: '开始游戏', timeLimit: '时间限制', minutesPerPlayer: '每位玩家分钟数',
+  minUnit: '分钟', mode: '模式',
+  modeFast: '快速', modeClassic: '经典', modePro: '专业',
+  toWin: n => `连成 ${n} 个获胜`,
+
+  wins: '获胜', winsByTime: '超时获胜', draw: '平局', playAgain: '再玩一次',
+  endQuestion: '确定要结束这局游戏吗？', endYes: '结束', endNo: '取消',
+  undoOffMsg: '撤销按钮已关闭。你可以在设置中重新开启。',
+  goSettings: '设置', close: '关闭',
+  centreNotice: '第一个棋子不能下在棋盘正中间。',
+  limitNotice: (w, h, what) => `已达到棋盘最大尺寸（${w} × ${h} 格），无法再添加${what}。`,
+  limRow: '行', limCol: '列', limBoth: '行或列',
+
+  settings: '设置', language: '语言',
+  firstMarkOffCentre: '首子不落正中', undoButton: '撤销按钮',
+  unlimitedBoard: '无限棋盘', maxWidth: '最大宽度', maxHeight: '最大高度',
+  cellsUnit: '格', tutorial: '教程', imprint: '法律声明',
+
+  t_shortH: 'ExtendOX 简介',
+  t_shortB: n => `欢迎来到 ExtendOX，一款把经典“井字棋”提升到全新高度的手机游戏！我们从 3x3 的棋盘开始，但要做好准备：每当一行或一列被填满，棋盘就要扩展。你能运筹帷幄，达成连成 ${n} 个的终极目标吗？<br>精彩对局，就此开始！`,
+  t_modesH: '游戏模式',
+  t_modesB: '在主界面选择模式。它决定你需要连成多少个棋子才能获胜。',
+  t_modeWin: n => `连成 ${n} 个获胜`,
+  t_selected: '已选择',
+  t_modesFoot: '选择模式时，也会把每位玩家分钟数和棋盘最大尺寸设为合适的数值；两者之后仍可更改。',
+  t_startH: '开局',
+  t_startB: '游戏由玩家 O 在 3x3 棋盘上落子开始。为了公平，第一个棋子不能下在正中间——这条规则可以在设置中关闭。',
+  t_heightH: '扩展高度',
+  t_heightB1: '玩家 X 填满了一整列，触发棋盘高度扩展。',
+  t_heightB2: '该列已满，玩家 X 获得战略优势：可以选择向上还是向下扩展棋盘。只有新的一行落定后，玩家 O 才能继续。',
+  t_widthH: '扩展宽度',
+  t_widthB1: '玩家 O 填满了一整行，触发棋盘宽度扩展。',
+  t_widthB2: '该行已满，玩家 O 获得战略优势：可以选择向左还是向右扩展棋盘。',
+  t_bothH: '同时填满行和列',
+  t_bothB: '一个棋子可能同时填满一列<b>和</b>一行。此时该玩家必须既添加一行<b>又</b>添加一列——四条灰色长条都会出现，两者都放好后才能继续。',
+  t_growH: '能扩展到多大',
+  t_growB: (label, w, h) => `在<b>${label}</b>模式下，棋盘最多扩展到 ${w} 列、${h} 行。达到上限后，填满一条线不再出现灰色长条——屏幕底部会显示一条简短提示，游戏直接继续。<br><br>两个上限都可以在设置中修改，或用<b>无限棋盘</b>完全取消。`,
+  t_zoomH: '缩放与拖动',
+  t_zoomB: '一旦棋盘无法以完整格子尺寸显示，格子就会缩小，让全部内容保持可见。使用底部栏的 <b>–</b> 和 <b>+</b> 按钮、双指捏合或鼠标滚轮来放大，拖动棋盘来移动视野。放大最多到原始格子尺寸，缩小最多到整个棋盘。每次落子后，视野会自动回到整个棋盘。',
+  t_winH: '获胜',
+  t_winB: n => `在扣人心弦的一刻，玩家 X 达成终极目标：连成 ${n} 个，赢得胜利。行、列以及两条对角线都算数。`,
+  t_topH: '顶部栏',
+  t_home: '主界面',
+  t_settingsRow: '设置——也包括本教程',
+  t_clock: '开启“时间限制”后，每位玩家都有时间上限。注意：时间用完就算输！留意颜色较深的计时器，它表示轮到谁走棋。',
+  t_bottomH: '底部栏',
+  t_undo: '用左边的按钮撤销上一步。它可以在设置中关闭。',
+  t_right: '右边的按钮用图标显示当前该做什么，用颜色表示轮到谁。',
+  t_place: '在棋盘上落子',
+  t_extend: '扩展一行或一列',
+  t_extendBoth: '同时扩展一行和一列',
+  t_winner: '宣布获胜者',
+
+  i_provider: '提供者', i_repBy: '代表人', i_contact: '联系方式',
+  i_vat: '增值税识别号', i_vatB: '增值税识别号：DE 123 456 789',
+  i_liability: '内容责任',
+  i_liabilityB: '作为服务提供者，我们依据一般法律对本页面上的自有内容负责。我们没有义务监控所传输或存储的第三方信息。',
+  i_links: '链接责任',
+  i_linksB: '本产品包含指向第三方外部网站的链接，我们无法影响其内容。链接页面的内容始终由相应的提供者或运营者负责。',
+  i_copyright: '版权',
+  i_copyrightB: '本页面上由运营者创建的内容受版权保护。超出版权法范围的复制、编辑、传播和任何形式的利用，均需书面同意。',
+  i_privacy: '数据保护',
+  i_privacyB: 'ExtendOX 不收集、不存储、不传输任何个人数据。游戏中选择的设置仅保存在本设备本地。',
+  i_placeholder: '占位文本——发布前请替换为真实的提供者信息。',
+
+  a_back: '返回', a_undo: '撤销', a_zoomIn: '放大', a_zoomOut: '缩小',
+},
+
+/* ----------------------------------------------------------------- हिन्दी -- */
+hi: {
+  playNow: 'अभी खेलें', timeLimit: 'समय सीमा', minutesPerPlayer: 'प्रति खिलाड़ी मिनट',
+  minUnit: 'मिनट', mode: 'मोड',
+  modeFast: 'तेज़', modeClassic: 'क्लासिक', modePro: 'प्रो',
+  toWin: n => `जीत के लिए ${n}`,
+
+  wins: 'जीते', winsByTime: 'समय से जीते', draw: 'बराबरी', playAgain: 'फिर खेलें',
+  endQuestion: 'क्या आप वाकई यह खेल समाप्त करना चाहते हैं?', endYes: 'समाप्त', endNo: 'रद्द करें',
+  undoOffMsg: 'पूर्ववत बटन बंद है। आप इसे सेटिंग्स में फिर से चालू कर सकते हैं।',
+  goSettings: 'सेटिंग्स', close: 'बंद करें',
+  centreNotice: 'पहला निशान ग्रिड के बिलकुल बीच में नहीं रखा जा सकता।',
+  limitNotice: (w, h, what) => `बोर्ड का अधिकतम आकार (${w} × ${h} खाने) पूरा हो गया – और ${what} नहीं जोड़ी जा सकती।`,
+  limRow: 'पंक्ति', limCol: 'स्तंभ', limBoth: 'पंक्ति या स्तंभ',
+
+  settings: 'सेटिंग्स', language: 'भाषा',
+  firstMarkOffCentre: 'पहला निशान बीच में नहीं', undoButton: 'पूर्ववत बटन',
+  unlimitedBoard: 'असीमित बोर्ड', maxWidth: 'अधिकतम चौड़ाई', maxHeight: 'अधिकतम ऊँचाई',
+  cellsUnit: 'खाने', tutorial: 'ट्यूटोरियल', imprint: 'कानूनी सूचना',
+
+  t_shortH: 'ExtendOX एक नज़र में',
+  t_shortB: n => `ExtendOX में आपका स्वागत है – एक रोमांचक मोबाइल गेम जो क्लासिक “टिक टैक टो” को बिलकुल नए स्तर पर ले जाता है! हम 3x3 ग्रिड से शुरू करते हैं, लेकिन तैयार रहें: जैसे ही कोई पंक्ति या स्तंभ भरता है, ग्रिड बढ़ाना पड़ता है। क्या आप रणनीति बनाकर ${n} लगातार का अंतिम लक्ष्य हासिल कर पाएंगे?<br>शानदार मुक़ाबले शुरू करें!`,
+  t_modesH: 'खेल मोड',
+  t_modesB: 'होम स्क्रीन पर एक मोड चुनें। यह तय करता है कि जीतने के लिए कितने निशान लगातार चाहिए।',
+  t_modeWin: n => `जीत के लिए ${n} लगातार`,
+  t_selected: 'चयनित',
+  t_modesFoot: 'मोड चुनने पर प्रति खिलाड़ी मिनट और बोर्ड का अधिकतम आकार भी उसी के अनुरूप सेट हो जाते हैं; दोनों बाद में बदले जा सकते हैं।',
+  t_startH: 'शुरुआत',
+  t_startB: 'खेल की शुरुआत खिलाड़ी O द्वारा 3x3 ग्रिड पर अपना निशान रखने से होती है। निष्पक्षता के लिए पहला निशान बीच में नहीं रखा जा सकता – यह नियम सेटिंग्स में बंद किया जा सकता है।',
+  t_heightH: 'ऊँचाई बढ़ाना',
+  t_heightB1: 'खिलाड़ी X पूरा एक स्तंभ भर देता है, जिससे ग्रिड की ऊँचाई बढ़ानी पड़ती है।',
+  t_heightB2: 'स्तंभ पूरा होने पर खिलाड़ी X को यह रणनीतिक लाभ मिलता है कि वह ग्रिड ऊपर बढ़ाए या नीचे। नई पंक्ति जुड़ने के बाद ही खिलाड़ी O आगे खेल सकता है।',
+  t_widthH: 'चौड़ाई बढ़ाना',
+  t_widthB1: 'खिलाड़ी O पूरी एक पंक्ति भर देता है, जिससे ग्रिड की चौड़ाई बढ़ानी पड़ती है।',
+  t_widthB2: 'पंक्ति पूरी होने पर खिलाड़ी O को यह रणनीतिक लाभ मिलता है कि वह ग्रिड बाईं ओर बढ़ाए या दाईं ओर।',
+  t_bothH: 'दोनों एक साथ',
+  t_bothB: 'एक ही निशान से एक स्तंभ <b>और</b> एक पंक्ति दोनों पूरे हो सकते हैं। तब खिलाड़ी को नई पंक्ति <b>और</b> नया स्तंभ दोनों जोड़ने होते हैं – चारों धूसर पट्टियाँ दिखती हैं और आगे खेलने से पहले दोनों रखनी पड़ती हैं।',
+  t_growH: 'कितना बढ़ सकता है',
+  t_growB: (label, w, h) => `<b>${label}</b> मोड में बोर्ड ${w} स्तंभ और ${h} पंक्तियों पर रुक जाता है। यह सीमा आने के बाद कोई लाइन पूरी करने पर धूसर पट्टियाँ नहीं खुलतीं – इसके बजाय स्क्रीन के नीचे एक छोटा संदेश दिखता है और खेल सीधे चलता रहता है।<br><br>दोनों सीमाएँ सेटिंग्स में बदली जा सकती हैं, या <b>असीमित बोर्ड</b> से पूरी तरह हटाई जा सकती हैं।`,
+  t_zoomH: 'ज़ूम और खींचना',
+  t_zoomB: 'जैसे ही बोर्ड पूरे खाने के आकार में नहीं समाता, खाने छोटे हो जाते हैं ताकि सब कुछ दिखता रहे। ज़ूम के लिए नीचे की पट्टी के <b>–</b> और <b>+</b> बटन, दो उँगलियों की चुटकी या माउस व्हील का उपयोग करें, और घूमने के लिए बोर्ड को खींचें। ज़ूम इन मूल खाने के आकार तक और ज़ूम आउट पूरे बोर्ड तक ही होता है। हर निशान के बाद दृश्य अपने आप पूरे बोर्ड पर लौट आता है।',
+  t_winH: 'जीत',
+  t_winB: n => `एक रोमांचक मोड़ पर खिलाड़ी X अंतिम लक्ष्य हासिल कर लेता है – ${n} निशान लगातार और शानदार जीत। पंक्ति, स्तंभ और दोनों विकर्ण, सभी गिने जाते हैं।`,
+  t_topH: 'ऊपरी पट्टी',
+  t_home: 'होम स्क्रीन',
+  t_settingsRow: 'सेटिंग्स – यह ट्यूटोरियल भी',
+  t_clock: '“समय सीमा” चालू करने पर हर खिलाड़ी को सीमित समय मिलता है। सावधान: समय खत्म हुआ तो हार! गहरे रंग वाली घड़ी पर ध्यान दें, वह बताती है कि बारी किसकी है।',
+  t_bottomH: 'निचली पट्टी',
+  t_undo: 'बाएँ बटन से अपनी पिछली चाल पूर्ववत करें। इसे सेटिंग्स में बंद किया जा सकता है।',
+  t_right: 'दायाँ बटन आइकन से दिखाता है कि अभी क्या करना है और रंग से बताता है कि बारी किसकी है।',
+  t_place: 'ग्रिड पर अपना निशान रखें',
+  t_extend: 'एक पंक्ति या स्तंभ बढ़ाएँ',
+  t_extendBoth: 'एक पंक्ति और एक स्तंभ दोनों बढ़ाएँ',
+  t_winner: 'विजेता की घोषणा',
+
+  i_provider: 'प्रदाता', i_repBy: 'प्रतिनिधि', i_contact: 'संपर्क',
+  i_vat: 'वैट पहचान संख्या', i_vatB: 'वैट पहचान संख्या: DE 123 456 789',
+  i_liability: 'सामग्री की ज़िम्मेदारी',
+  i_liabilityB: 'सेवा प्रदाता के रूप में हम इन पृष्ठों पर अपनी सामग्री के लिए सामान्य कानूनों के अनुसार ज़िम्मेदार हैं। हम प्रेषित या संग्रहीत तृतीय-पक्ष जानकारी की निगरानी के लिए बाध्य नहीं हैं।',
+  i_links: 'लिंक की ज़िम्मेदारी',
+  i_linksB: 'हमारी सेवा में बाहरी वेबसाइटों के लिंक हैं, जिनकी सामग्री पर हमारा कोई नियंत्रण नहीं है। उन पृष्ठों की सामग्री के लिए हमेशा संबंधित प्रदाता या संचालक ही ज़िम्मेदार होता है।',
+  i_copyright: 'कॉपीराइट',
+  i_copyrightB: 'इन पृष्ठों पर संचालकों द्वारा बनाई गई सामग्री कॉपीराइट के अधीन है। कॉपीराइट कानून की सीमाओं से बाहर किसी भी प्रकार की नकल, संपादन, वितरण या उपयोग के लिए लिखित अनुमति आवश्यक है।',
+  i_privacy: 'डेटा सुरक्षा',
+  i_privacyB: 'ExtendOX कोई व्यक्तिगत डेटा एकत्र, संग्रहीत या प्रेषित नहीं करता। खेल में चुनी गई सेटिंग्स केवल इसी डिवाइस पर स्थानीय रूप से सहेजी जाती हैं।',
+  i_placeholder: 'नमूना पाठ – प्रकाशन से पहले कृपया इसे वास्तविक प्रदाता विवरण से बदलें।',
+
+  a_back: 'वापस', a_undo: 'पूर्ववत', a_zoomIn: 'ज़ूम इन', a_zoomOut: 'ज़ूम आउट',
+},
+
+/* --------------------------------------------------------------- Русский -- */
+ru: {
+  playNow: 'Играть', timeLimit: 'Лимит времени', minutesPerPlayer: 'Минут на игрока',
+  minUnit: 'мин', mode: 'Режим',
+  modeFast: 'Быстрый', modeClassic: 'Классика', modePro: 'Про',
+  toWin: n => `${n} в ряд`,
+
+  wins: 'Победа', winsByTime: 'Победа по времени', draw: 'Ничья', playAgain: 'Играть снова',
+  endQuestion: 'Вы действительно хотите завершить игру?', endYes: 'Завершить', endNo: 'Отмена',
+  undoOffMsg: 'Кнопка отмены хода выключена. Её можно снова включить в настройках.',
+  goSettings: 'Настройки', close: 'Закрыть',
+  centreNotice: 'Самый первый знак нельзя ставить в центр поля.',
+  limitNotice: (w, h, what) => `Достигнут максимальный размер поля (${w} × ${h} клеток) — добавить ещё ${what} нельзя.`,
+  limRow: 'строку', limCol: 'столбец', limBoth: 'строку или столбец',
+
+  settings: 'Настройки', language: 'Язык',
+  firstMarkOffCentre: 'Начало не в центре', undoButton: 'Кнопка отмены',
+  unlimitedBoard: 'Безграничное поле', maxWidth: 'Макс. ширина', maxHeight: 'Макс. высота',
+  cellsUnit: 'клеток', tutorial: 'Обучение', imprint: 'Правовая информация',
+
+  t_shortH: 'ExtendOX вкратце',
+  t_shortB: n => `Добро пожаловать в ExtendOX — увлекательную мобильную игру, которая выводит классические «крестики-нолики» на совершенно новый уровень! Мы начинаем с поля 3x3, но будьте готовы расширять его, как только заполнится строка или столбец. Сможете ли вы всё рассчитать и достичь главной цели — ${n} в ряд?<br>Пусть начнутся великие партии!`,
+  t_modesH: 'Режимы игры',
+  t_modesB: 'Выберите режим на главном экране. Он определяет, сколько знаков в ряд нужно для победы.',
+  t_modeWin: n => `${n} в ряд для победы`,
+  t_selected: 'выбрано',
+  t_modesFoot: 'Выбор режима также задаёт минуты на игрока и максимальный размер поля; и то, и другое можно изменить позже.',
+  t_startH: 'Начало',
+  t_startB: 'Игру начинает игрок O, ставя свой знак на поле 3x3. Ради честности самый первый знак нельзя ставить в центр — это правило можно отключить в настройках.',
+  t_heightH: 'Расширение по высоте',
+  t_heightB1: 'Игрок X заполняет весь столбец, и поле нужно расширить по высоте.',
+  t_heightB2: 'Столбец заполнен, и игрок X получает стратегическое преимущество: он выбирает, расширять поле вверх или вниз. Игрок O может продолжить только после того, как новая строка добавлена.',
+  t_widthH: 'Расширение по ширине',
+  t_widthB1: 'Игрок O заполняет всю строку, и поле нужно расширить по ширине.',
+  t_widthB2: 'Строка заполнена, и игрок O получает стратегическое преимущество: он выбирает, расширять поле влево или вправо.',
+  t_bothH: 'Оба сразу',
+  t_bothB: 'Один знак может заполнить и столбец, <b>и</b> строку. Тогда игрок должен добавить и новую строку, <b>и</b> новый столбец — появляются все четыре серые полосы, и обе нужно поставить, прежде чем игра продолжится.',
+  t_growH: 'Насколько поле растёт',
+  t_growB: (label, w, h) => `В режиме <b>${label}</b> поле останавливается на ${w} столбцах и ${h} строках. После этого заполнение линии больше не открывает серые полосы — вместо этого внизу экрана появляется короткое сообщение, и игра сразу продолжается.<br><br>Оба предела можно изменить в настройках или полностью снять с помощью параметра <b>Безграничное поле</b>.`,
+  t_zoomH: 'Масштаб и перетаскивание',
+  t_zoomB: 'Как только поле перестаёт помещаться при полном размере клетки, клетки уменьшаются, чтобы всё оставалось видно. Для увеличения используйте кнопки <b>–</b> и <b>+</b> в нижней панели, жест сведения пальцев или колесо мыши, а чтобы перемещаться — перетаскивайте поле. Увеличение доходит до исходного размера клетки, уменьшение — до всего поля. После каждого хода вид автоматически возвращается ко всему полю.',
+  t_winH: 'Победа',
+  t_winB: n => `В напряжённый момент игрок X достигает главной цели — ${n} знаков в ряд и уверенная победа. Считаются строка, столбец и обе диагонали.`,
+  t_topH: 'Верхняя панель',
+  t_home: 'Главный экран',
+  t_settingsRow: 'Настройки — включая это обучение',
+  t_clock: 'Включённый «Лимит времени» задаёт каждому игроку ограниченное время. Осторожно: если время выйдет, вы проиграли! Следите за более яркими часами — они показывают, чей сейчас ход.',
+  t_bottomH: 'Нижняя панель',
+  t_undo: 'Левая кнопка отменяет ваш последний ход. Её можно выключить в настройках.',
+  t_right: 'Правая кнопка значками показывает, что нужно сделать сейчас, а цветом — чей ход.',
+  t_place: 'Поставьте свой знак на поле',
+  t_extend: 'Добавить строку или столбец',
+  t_extendBoth: 'Добавить и строку, и столбец',
+  t_winner: 'Объявление победителя',
+
+  i_provider: 'Поставщик', i_repBy: 'В лице', i_contact: 'Контакты',
+  i_vat: 'НДС-номер', i_vatB: 'Идентификационный номер НДС: DE 123 456 789',
+  i_liability: 'Ответственность за содержание',
+  i_liabilityB: 'Как поставщик услуг мы отвечаем за собственное содержание этих страниц в соответствии с общим законодательством. Мы не обязаны отслеживать передаваемую или хранимую информацию третьих лиц.',
+  i_links: 'Ответственность за ссылки',
+  i_linksB: 'Наше предложение содержит ссылки на внешние сайты, на содержание которых мы не влияем. За содержание таких страниц всегда отвечает соответствующий поставщик или оператор.',
+  i_copyright: 'Авторское право',
+  i_copyrightB: 'Содержание, созданное операторами сайта на этих страницах, защищено авторским правом. Копирование, изменение, распространение и любое использование за пределами закона требуют письменного согласия.',
+  i_privacy: 'Защита данных',
+  i_privacyB: 'ExtendOX не собирает, не хранит и не передаёт персональные данные. Выбранные в игре настройки сохраняются только локально на этом устройстве.',
+  i_placeholder: 'Текст-заполнитель — перед публикацией замените его реальными сведениями о поставщике.',
+
+  a_back: 'Назад', a_undo: 'Отменить', a_zoomIn: 'Увеличить', a_zoomOut: 'Уменьшить',
+},
+
+};
+
+  </script>
+  <script>
+/* =============================================================================
+   ExtendOX — a Tic-Tac-Toe variation played on a board that keeps growing.
+   Pure static app: no build step, no dependencies. Just open index.html.
+   ============================================================================= */
+'use strict';
+
+/* ------------------------------- constants -------------------------------- */
+const RED  = '#EA5A47';   // Player X (cross)
+const BLUE = '#4472C4';   // Player O (circle)
+const BASE_CELL = 62;     // the design cell size — also the maximum zoom-in level
+const NOTICE_GAP = 12;    // clearance kept between the board and the bottom note
+const MIN_TOUCH = 44;     // below this cell size zoom & drag are offered
+
+/* playing modes — each one sets the win length and its own board-size defaults */
+const MODES = {
+  fast:    { label: 'Fast',    win: 4, w: 10, h: 10, min: 5 },
+  classic: { label: 'Classic', win: 5, w: 15, h: 15, min: 10 },
+  pro:     { label: 'Pro',     win: 6, w: 25, h: 25, min: 15 },
+};
+const MODE_KEYS = Object.keys(MODES);
+
+/* editable number fields */
+const NUM = {
+  minutes: { key: 'minutes', min: 1, max: 60, def: 5 },
+  maxW:    { key: 'maxW',    min: 3, max: 25, def: 10 },
+  maxH:    { key: 'maxH',    min: 3, max: 25, def: 10 },
+};
+
+const $app = document.getElementById('app');
+
+/* Build stamp, injected by build-standalone.ps1 and shown at the foot of the
+   Imprint. It is the only way to tell on a phone which version you are on. */
+const BUILD = (window.ExtendOX && window.ExtendOX.build) || 'dev';
+
+/* ============================== icons =====================================
+   Every path below is taken verbatim from "Mobile Game Design/Icons/*.svg".
+   The two-colour icons exist in the folder as a red and a blue file with
+   identical geometry, so they are drawn once with `currentColor` and tinted by
+   the caller. The three large assets (app mark, wordmark, party popper) are
+   used as files from ./icons/.
+   Only the chevrons, the caret and the zoom +/- are not in the folder; they are
+   drawn in the same 24 px / stroke-2 / round-cap style.
+   ========================================================================== */
+const svg = (size, vb, body, cls) =>
+  `<svg class="${cls || ''}" width="${size}" height="${size}" viewBox="${vb}" fill="none" aria-hidden="true">${body}</svg>`;
+
+const p = (d, w) =>
+  `<path d="${d}" stroke="currentColor" stroke-width="${w || 2}" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+/* Several source icons sit slightly off-centre inside their own viewBox (their
+   drawn ink is not symmetric about the middle). Shifting the artwork by the
+   measured difference centres it in the button without altering the shape. */
+const nudge = (dx, dy, body) => `<g transform="translate(${dx} ${dy})">${body}</g>`;
+
+const IC = {
+  /* Home.svg */
+  home: (s = 24) => svg(s, '0 0 24 24', p(
+    'M20 17.3425V11.7945C20 11.2605 20 10.9935 19.935 10.7445C19.8775 10.5244 19.7828 10.3157 19.655 10.1275C19.51 9.9145 19.31 9.7375 18.907 9.3865L14.107 5.1865C13.361 4.5335 12.987 4.2065 12.567 4.0825C12.197 3.9725 11.803 3.9725 11.432 4.0825C11.012 4.2065 10.64 4.5325 9.894 5.1845L5.093 9.3865C4.691 9.7385 4.49 9.9145 4.346 10.1265C4.2178 10.315 4.12276 10.524 4.065 10.7445C4 10.9925 4 11.2605 4 11.7945V17.3425C4 18.2745 4 18.7405 4.152 19.1075C4.2524 19.3502 4.39963 19.5708 4.58528 19.7566C4.77093 19.9424 4.99137 20.0899 5.234 20.1905C5.602 20.3425 6.068 20.3425 7 20.3425C7.932 20.3425 8.398 20.3425 8.766 20.1905C9.00863 20.0899 9.22907 19.9424 9.41472 19.7566C9.60037 19.5708 9.7476 19.3502 9.848 19.1075C10 18.7405 10 18.2745 10 17.3425V16.3425C10 15.8121 10.2107 15.3034 10.5858 14.9283C10.9609 14.5532 11.4696 14.3425 12 14.3425C12.5304 14.3425 13.0391 14.5532 13.4142 14.9283C13.7893 15.3034 14 15.8121 14 16.3425V17.3425C14 18.2745 14 18.7405 14.152 19.1075C14.2524 19.3502 14.3996 19.5708 14.5853 19.7566C14.7709 19.9424 14.9914 20.0899 15.234 20.1905C15.602 20.3425 16.068 20.3425 17 20.3425C17.932 20.3425 18.398 20.3425 18.766 20.1905C19.0086 20.0899 19.2291 19.9424 19.4147 19.7566C19.6004 19.5708 19.7476 19.3502 19.848 19.1075C20 18.7405 20 18.2745 20 17.3425Z')),
+
+  /* Settings.svg */
+  sliders: (s = 24) => svg(s, '0 0 24 24', p(
+    'M10 18H21M3 18H6M6 18V20M6 18V16M20 12H21M3 12H16M16 12V14M16 12V10M14 6H21M3 6H10M10 6V8M10 6V4')),
+
+  /* Undo.svg */
+  undo: (s = 24) => svg(s, '0 0 24 24', nudge(-0.5, 0.5, p(
+    'M10 8H5V3M5.291 16.357C6.22285 17.7919 7.59018 18.8902 9.19225 19.4908C10.7943 20.0914 12.5467 20.1625 14.1922 19.6937C15.8376 19.2249 17.2895 18.241 18.3345 16.8863C19.3796 15.5317 19.9628 13.8776 19.9986 12.1671C20.0343 10.4565 19.5208 8.77955 18.5333 7.38238C17.5457 5.9852 16.1363 4.94143 14.5119 4.40429C12.8874 3.86716 11.1336 3.86496 9.50784 4.39802C7.88207 4.93107 6.47002 5.97131 5.479 7.366'))),
+
+  /* ci_bulb.svg */
+  bulb: (s = 24) => svg(s, '0 0 24 24', p(
+    'M9.00001 21H15M12 3C10.9178 2.99974 9.85562 3.2922 8.92605 3.84639C7.99648 4.40059 7.23412 5.19589 6.7197 6.14805C6.20529 7.10021 5.95799 8.17378 6.00399 9.25503C6.04999 10.3363 6.38758 11.385 6.98101 12.29C7.93501 13.742 8.41101 14.468 8.47401 14.576C9.02401 15.541 8.92301 15.201 8.99201 16.31C9.00001 16.434 9.00001 16.623 9.00001 17C9.00001 17.2652 9.10536 17.5196 9.2929 17.7071C9.48044 17.8946 9.73479 18 10 18H14C14.2652 18 14.5196 17.8946 14.7071 17.7071C14.8947 17.5196 15 17.2652 15 17C15 16.623 15 16.434 15.008 16.31C15.078 15.2 14.975 15.541 15.526 14.576C15.588 14.468 16.066 13.742 17.019 12.289C17.6122 11.384 17.9495 10.3354 17.9954 9.2543C18.0413 8.1732 17.7939 7.09981 17.2795 6.14781C16.7651 5.19581 16.0029 4.40064 15.0735 3.84649C14.1441 3.29235 13.0821 2.99986 12 3Z')),
+
+  /* ci_book-open.svg */
+  book: (s = 24) => svg(s, '0 0 24 24', nudge(0, -0.5, p(
+    'M12 9.8V20M12 20L11.418 19.128C10.902 18.352 10.643 17.964 10.3 17.682C9.996 17.432 9.643 17.244 9.266 17.13C8.839 17 8.37 17 7.431 17H4.598C4.039 17 3.76 17 3.546 16.891C3.35785 16.7951 3.20487 16.6422 3.109 16.454C3 16.24 3 15.96 3 15.4V6.6C3 6.04 3 5.76 3.109 5.546C3.20487 5.35785 3.35785 5.20487 3.546 5.109C3.76 5 4.04 5 4.6 5H7.2C8.88 5 9.72 5 10.362 5.327C10.9265 5.61462 11.3854 6.07354 11.673 6.638C12 7.28 12 8.12 12 9.8C12 8.12 12 7.28 12.327 6.638C12.6144 6.07369 13.0729 5.61479 13.637 5.327C14.28 5 15.12 5 16.8 5H19.4C19.96 5 20.24 5 20.454 5.109C20.642 5.205 20.794 5.358 20.891 5.546C21 5.76 21 6.04 21 6.6V15.4C21 15.96 21 16.24 20.89 16.454C20.7944 16.642 20.6418 16.795 20.454 16.891C20.241 17 19.961 17 19.402 17H16.569C15.63 17 15.159 17 14.733 17.13C14.3561 17.2444 14.0054 17.4319 13.701 17.682C13.357 17.965 13.096 18.356 12.575 19.137L12 20Z'))),
+
+  /* Red Confetti.svg / Blue Confetti.svg */
+  party: (s = 24) => svg(s, '0 0 24 24',
+    p('M5.8 11.3L2 22L12.7 18.21M4 3H4.01M22 8H22.01M15 2H15.01M22 20H22.01M22 2L19.76 2.75C19.1224 2.96239 18.5783 3.38964 18.2208 3.95872C17.8633 4.52781 17.7146 5.20339 17.8 5.87C17.9 6.73 17.23 7.5 16.35 7.5H15.97C15.11 7.5 14.37 8.1 14.21 8.94L14 10M22 13L21.18 12.67C20.32 12.33 19.36 12.87 19.2 13.78C19.09 14.48 18.48 15 17.77 15H17M11 2L11.33 2.82C11.67 3.68 11.13 4.64 10.22 4.8C9.52 4.9 9 5.52 9 6.23V7') +
+    p('M11 13C12.93 14.93 13.83 17.17 13 18C12.17 18.83 9.92999 17.93 7.99999 16C6.06999 14.07 5.16999 11.83 5.99999 11C6.82999 10.17 9.06999 11.07 11 13Z')),
+
+  /* Add Column Red.svg / Add Column Blue.svg */
+  extCol: (s = 24) => svg(s, '0 0 24 24', nudge(1, 0, p(
+    'M5 17H8M8 17H11M8 17V14M8 17V20M14 21H15C15.5304 21 16.0391 20.7893 16.4142 20.4142C16.7893 20.0391 17 19.5304 17 19V5C17 4.46957 16.7893 3.96086 16.4142 3.58579C16.0391 3.21071 15.5304 3 15 3H13C12.4696 3 11.9609 3.21071 11.5858 3.58579C11.2107 3.96086 11 4.46957 11 5V11'))),
+
+  /* Add Row Red.svg / Add Row Blue.svg */
+  extRow: (s = 24) => svg(s, '0 0 24 24', nudge(0, 1, p(
+    'M3 14V15C3 15.5304 3.21071 16.0391 3.58579 16.4142C3.96086 16.7893 4.46957 17 5 17H19C19.5304 17 20.0391 16.7893 20.4142 16.4142C20.7893 16.0391 21 15.5304 21 15V13C21 12.4696 20.7893 11.9609 20.4142 11.5858C20.0391 11.2107 19.5304 11 19 11H13M10 8H7M7 8H4M7 8V5M7 8V11'))),
+
+  /* Group 2.svg (red) / Group 3.svg (blue) */
+  extBoth: (s = 28) => svg(s, '0 0 28 28', nudge(-2, -2,
+    p('M14 5H25C25.5304 5 26.0349 5.21071 26.41 5.58579C26.7851 5.96086 27 6.46957 27 7V9C27 9.53043 26.7851 10.0391 26.41 10.4142C26.0349 10.7893 25.5304 11 25 11H14') +
+    p('M11 8H8M8 8H5M8 8V11M8 8L8 5M5 14L5 25C5 25.5304 5.21071 26.0349 5.58579 26.41C5.96086 26.7851 6.46957 27 7 27H9C9.53043 27 10.0391 26.7851 10.4142 26.41C10.7893 26.0349 11 25.5304 11 25L11 14'))),
+
+  /* Plus.svg */
+  plus: (s = 32) => svg(s, '0 0 32 32',
+    `<path d="M8 16H16M16 16H24M16 16V24M16 16V8" stroke="#000" stroke-width="2.66667" stroke-linecap="round" stroke-linejoin="round"/>`),
+
+  /* not in the icon folder – drawn to match its style */
+  chevL:   (s = 24) => svg(s, '0 0 24 24', nudge(0.5, 0, p('M15 5L8 12L15 19'))),
+  chevR:   (s = 24) => svg(s, '0 0 24 24', nudge(-0.5, 0, p('M9 5L16 12L9 19'))),
+  caret:   (s = 14) => svg(s, '0 0 24 24', nudge(0, -0.5, p('M6 9.5L12 15.5L18 9.5'))),
+  zoomIn:  (s = 22) => svg(s, '0 0 24 24', p('M4 12H12M12 12H20M12 12V20M12 12V4')),
+  zoomOut: (s = 22) => svg(s, '0 0 24 24', p('M4 12H20')),
+};
+
+/* Big Red Cross.svg / Big Blue Circle.svg — the 48 px playing-field marks */
+const markX = (s, pop) => svg(s, '0 0 48 48',
+  `<path d="M41.9992 13.3072L35.8661 7L24.5719 18.1928L13.3331 7L7 13.3072L18.3495 24.5L7 35.6928L13.3339 42L24.5727 30.8072L35.8669 42L42 35.6928L30.7612 24.5L41.9992 13.3072Z" fill="${RED}"/>
+   <path d="M41.9992 13.3072L35.8661 7L24.5719 18.1928L13.3331 7L7 13.3072L18.3416 24.5L7 35.6928L13.3339 42L24.5727 30.8072L35.8669 42L42 35.6928L30.7612 24.5L41.9992 13.3072Z" stroke="black" stroke-width="1.33333" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>`,
+  'glyph' + (pop ? ' pop' : ''));
+
+const markO = (s, pop) => svg(s, '0 0 48 48',
+  `<path d="M23.7107 4.27124C13.0333 4.27124 4.37732 12.9266 4.37732 23.6046C4.37732 34.2819 13.0333 42.9379 23.7107 42.9379C34.388 42.9379 43.044 34.2819 43.044 23.6046C43.044 12.9266 34.388 4.27124 23.7107 4.27124ZM23.7107 36.9379C16.3467 36.9379 10.3773 30.9679 10.3773 23.6046C10.3773 16.2412 16.3467 10.2712 23.7107 10.2712C31.0747 10.2712 37.044 16.2406 37.044 23.6046C37.044 30.9686 31.0747 36.9379 23.7107 36.9379Z" fill="${BLUE}"/>
+   <path d="M23.8634 43.2914C34.5409 43.2914 43.1967 34.6356 43.1967 23.9581C43.1967 13.2806 34.5409 4.62476 23.8634 4.62476C13.1859 4.62476 4.53003 13.2806 4.53003 23.9581C4.53003 34.6356 13.1859 43.2914 23.8634 43.2914Z" stroke="black" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+   <path d="M23.8634 37.2914C31.2272 37.2914 37.1967 31.3219 37.1967 23.9581C37.1967 16.5943 31.2272 10.6248 23.8634 10.6248C16.4996 10.6248 10.53 16.5943 10.53 23.9581C10.53 31.3219 16.4996 37.2914 23.8634 37.2914Z" stroke="black" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>`,
+  'glyph' + (pop ? ' pop' : ''));
+
+const mark = (who, s, pop) => (who === 'X' ? markX(s, pop) : markO(s, pop));
+
+/* Small Red Cross.svg / Small Blue Circle.svg — the 24 px interface marks */
+const smallX = (s = 24) => svg(s, '0 0 24 24',
+  `<path d="M20.9996 6.24369L17.8454 3L12.037 8.75631L6.25702 3L3 6.24369L8.83687 12L3 17.7563L6.25743 21L12.0374 15.2437L17.8458 21L21 17.7563L15.22 12L20.9996 6.24369Z" fill="${RED}"/>
+   <path d="M20.9996 6.24369L17.8454 3L12.037 8.75631L6.25702 3L3 6.24369L8.83281 12L3 17.7563L6.25743 21L12.0374 15.2437L17.8458 21L21 17.7563L15.22 12L20.9996 6.24369Z" stroke="black" stroke-width="0.666667" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>`);
+
+const smallO = (s = 24) => svg(s, '0 0 24 24',
+  `<path d="M11.8553 2.13574C6.51666 2.13574 2.18866 6.46341 2.18866 11.8024C2.18866 17.1411 6.51666 21.4691 11.8553 21.4691C17.194 21.4691 21.522 17.1411 21.522 11.8024C21.522 6.46341 17.194 2.13574 11.8553 2.13574ZM11.8553 18.4691C8.17333 18.4691 5.18866 15.4841 5.18866 11.8024C5.18866 8.12074 8.17333 5.13574 11.8553 5.13574C15.5373 5.13574 18.522 8.12041 18.522 11.8024C18.522 15.4844 15.5373 18.4691 11.8553 18.4691Z" fill="${BLUE}"/>
+   <path d="M11.9317 21.6456C17.2704 21.6456 21.5983 17.3177 21.5983 11.9789C21.5983 6.64017 17.2704 2.31226 11.9317 2.31226C6.59293 2.31226 2.26501 6.64017 2.26501 11.9789C2.26501 17.3177 6.59293 21.6456 11.9317 21.6456Z" stroke="black" stroke-width="0.666667" stroke-linecap="round" stroke-linejoin="round"/>
+   <path d="M11.9317 18.6456C15.6136 18.6456 18.5983 15.6608 18.5983 11.9789C18.5983 8.29702 15.6136 5.31226 11.9317 5.31226C8.24978 5.31226 5.26501 8.29702 5.26501 11.9789C5.26501 15.6608 8.24978 18.6456 11.9317 18.6456Z" stroke="black" stroke-width="0.666667" stroke-linecap="round" stroke-linejoin="round"/>`);
+
+const smallMark = (who, s = 24) => (who === 'X' ? smallX(s) : smallO(s));
+
+/* The large assets. build-standalone.ps1 rewrites this object with inline
+   data: URIs to produce the single-file build — keep it a plain literal. */
+const ASSETS = {
+  logo:  'data:image/png;base64,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',
+  word:  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQwIiBoZWlnaHQ9IjMwIiB2aWV3Qm94PSIwIDAgMTQwIDMwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZyBjbGlwLXBhdGg9InVybCgjY2xpcDBfMzE4XzMwNjQpIj4KPHJlY3Qgd2lkdGg9IjE0MCIgaGVpZ2h0PSIzMCIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTYuMjU2IDI1QzUuNTI4IDI1IDQuOTY4IDI0LjgwNCA0LjU3NiAyNC40MTJDNC4xODQgMjQuMDIgMy45ODggMjMuNDYgMy45ODggMjIuNzMyVjcuNTI4QzMuOTg4IDYuOCA0LjE4NCA2LjI0IDQuNTc2IDUuODQ4QzQuOTY4IDUuNDU2IDUuNTI4IDUuMjYgNi4yNTYgNS4yNkgxNi4wMjhDMTYuNTg4IDUuMjYgMTcuMDA4IDUuNDA5MzMgMTcuMjg4IDUuNzA4QzE3LjU4NjcgNS45ODggMTcuNzM2IDYuMzk4NjcgMTcuNzM2IDYuOTRDMTcuNzM2IDcuNSAxNy41ODY3IDcuOTI5MzMgMTcuMjg4IDguMjI4QzE3LjAwOCA4LjUwOCAxNi41ODggOC42NDggMTYuMDI4IDguNjQ4SDguMTMyVjEzLjI2OEgxNS4zODRDMTUuOTYyNyAxMy4yNjggMTYuMzkyIDEzLjQxNzMgMTYuNjcyIDEzLjcxNkMxNi45NzA3IDEzLjk5NiAxNy4xMiAxNC40MTYgMTcuMTIgMTQuOTc2QzE3LjEyIDE1LjUzNiAxNi45NzA3IDE1Ljk2NTMgMTYuNjcyIDE2LjI2NEMxNi4zOTIgMTYuNTQ0IDE1Ljk2MjcgMTYuNjg0IDE1LjM4NCAxNi42ODRIOC4xMzJWMjEuNjEySDE2LjAyOEMxNi41ODggMjEuNjEyIDE3LjAwOCAyMS43NjEzIDE3LjI4OCAyMi4wNkMxNy41ODY3IDIyLjM0IDE3LjczNiAyMi43NTA3IDE3LjczNiAyMy4yOTJDMTcuNzM2IDIzLjg1MiAxNy41ODY3IDI0LjI4MTMgMTcuMjg4IDI0LjU4QzE3LjAwOCAyNC44NiAxNi41ODggMjUgMTYuMDI4IDI1SDYuMjU2Wk0yMi4wMzMxIDI1LjE5NkMyMS41MTA1IDI1LjE5NiAyMS4wOTA1IDI1LjA1NiAyMC43NzMxIDI0Ljc3NkMyMC40NTU4IDI0LjQ3NzMgMjAuMjg3OCAyNC4xMDQgMjAuMjY5MSAyMy42NTZDMjAuMjY5MSAyMy4yMDggMjAuNDU1OCAyMi43NTA3IDIwLjgyOTEgMjIuMjg0TDI1LjE2OTEgMTYuOTY0VjE4Ljg2OEwyMS4xMzcxIDEzLjk0QzIwLjc0NTEgMTMuNDU0NyAyMC41NTg1IDEyLjk4OCAyMC41NzcxIDEyLjU0QzIwLjU5NTggMTIuMDkyIDIwLjc2MzggMTEuNzI4IDIxLjA4MTEgMTEuNDQ4QzIxLjM5ODUgMTEuMTY4IDIxLjgxODUgMTEuMDI4IDIyLjM0MTEgMTEuMDI4QzIyLjg0NTEgMTEuMDI4IDIzLjI2NTEgMTEuMTEyIDIzLjYwMTEgMTEuMjhDMjMuOTM3MSAxMS40NDggMjQuMjU0NSAxMS43MjggMjQuNTUzMSAxMi4xMkwyNy41NDkxIDE1Ljk1NkgyNi4wNjUxTDI5LjA2MTEgMTIuMTJDMjkuMzc4NSAxMS43MjggMjkuNzA1MSAxMS40NDggMzAuMDQxMSAxMS4yOEMzMC4zNzcxIDExLjExMiAzMC43ODc4IDExLjAyOCAzMS4yNzMxIDExLjAyOEMzMS43OTU4IDExLjAyOCAzMi4yMTU4IDExLjE3NzMgMzIuNTMzMSAxMS40NzZDMzIuODUwNSAxMS43NTYgMzMuMDA5MSAxMi4xMiAzMy4wMDkxIDEyLjU2OEMzMy4wMjc4IDEzLjAxNiAzMi44NDExIDEzLjQ3MzMgMzIuNDQ5MSAxMy45NEwyOC40MTcxIDE4Ljg2OFYxNi45NjRMMzIuNzg1MSAyMi4yODRDMzMuMTc3MSAyMi43MzIgMzMuMzYzOCAyMy4xOCAzMy4zNDUxIDIzLjYyOEMzMy4zMjY1IDI0LjA3NiAzMy4xNDkxIDI0LjQ0OTMgMzIuODEzMSAyNC43NDhDMzIuNDk1OCAyNS4wNDY3IDMyLjA3NTggMjUuMTk2IDMxLjU1MzEgMjUuMTk2QzMxLjA0OTEgMjUuMTk2IDMwLjYyOTEgMjUuMTEyIDMwLjI5MzEgMjQuOTQ0QzI5Ljk3NTggMjQuNzU3MyAyOS42NTg1IDI0LjQ3NzMgMjkuMzQxMSAyNC4xMDRMMjYuMDY1MSAxOS45MzJIMjcuNDkzMUwyNC4yMTcxIDI0LjEwNEMyMy45MTg1IDI0LjQ1ODcgMjMuNjAxMSAyNC43MjkzIDIzLjI2NTEgMjQuOTE2QzIyLjk0NzggMjUuMTAyNyAyMi41MzcxIDI1LjE5NiAyMi4wMzMxIDI1LjE5NlpNNDIuOTY1OCAyNS4zMDhDNDEuNjc3OCAyNS4zMDggNDAuNTk1MSAyNS4wOTMzIDM5LjcxNzggMjQuNjY0QzM4Ljg1OTEgMjQuMjM0NyAzOC4yMTUxIDIzLjYwOTMgMzcuNzg1OCAyMi43ODhDMzcuMzc1MSAyMS45NjY3IDM3LjE2OTggMjAuOTMwNyAzNy4xNjk4IDE5LjY4VjE0LjQxNkgzNS45OTM4QzM1LjQ3MTEgMTQuNDE2IDM1LjA2MDQgMTQuMjc2IDM0Ljc2MTggMTMuOTk2QzM0LjQ4MTcgMTMuNzE2IDM0LjM0MTcgMTMuMzMzMyAzNC4zNDE3IDEyLjg0OEMzNC4zNDE3IDEyLjMyNTMgMzQuNDgxNyAxMS45MzMzIDM0Ljc2MTggMTEuNjcyQzM1LjA2MDQgMTEuMzkyIDM1LjQ3MTEgMTEuMjUyIDM1Ljk5MzggMTEuMjUySDM3LjE2OThWOS4xMjRDMzcuMTY5OCA4LjQxNDY3IDM3LjM1NjQgNy44ODI2NyAzNy43Mjk4IDcuNTI4QzM4LjEwMzEgNy4xNTQ2NyAzOC42MjU4IDYuOTY4IDM5LjI5NzggNi45NjhDMzkuOTg4NCA2Ljk2OCA0MC41MTExIDcuMTU0NjcgNDAuODY1OCA3LjUyOEM0MS4yMjA0IDcuODgyNjcgNDEuMzk3OCA4LjQxNDY3IDQxLjM5NzggOS4xMjRWMTEuMjUySDQ0LjA1NzhDNDQuNTgwNCAxMS4yNTIgNDQuOTgxOCAxMS4zOTIgNDUuMjYxOCAxMS42NzJDNDUuNTQxOCAxMS45MzMzIDQ1LjY4MTggMTIuMzI1MyA0NS42ODE4IDEyLjg0OEM0NS42ODE4IDEzLjMzMzMgNDUuNTQxOCAxMy43MTYgNDUuMjYxOCAxMy45OTZDNDQuOTgxOCAxNC4yNzYgNDQuNTgwNCAxNC40MTYgNDQuMDU3OCAxNC40MTZINDEuMzk3OFYxOS41MTJDNDEuMzk3OCAyMC4yOTYgNDEuNTc1MSAyMC44ODQgNDEuOTI5OCAyMS4yNzZDNDIuMzAzMSAyMS42NjggNDIuODkxMSAyMS44NjQgNDMuNjkzOCAyMS44NjRDNDMuOTczOCAyMS44NjQgNDQuMjM1MSAyMS44MzYgNDQuNDc3OCAyMS43OEM0NC43MjA0IDIxLjcyNCA0NC45NDQ0IDIxLjY4NjcgNDUuMTQ5OCAyMS42NjhDNDUuNDExMSAyMS42NDkzIDQ1LjYyNTggMjEuNzMzMyA0NS43OTM4IDIxLjkyQzQ1Ljk2MTggMjIuMDg4IDQ2LjA0NTggMjIuNDcwNyA0Ni4wNDU4IDIzLjA2OEM0Ni4wNDU4IDIzLjUxNiA0NS45NzExIDIzLjkwOCA0NS44MjE4IDI0LjI0NEM0NS42NzI0IDI0LjU4IDQ1LjQxMTEgMjQuODIyNyA0NS4wMzc4IDI0Ljk3MkM0NC43OTUxIDI1LjA2NTMgNDQuNDU5MSAyNS4xNCA0NC4wMjk4IDI1LjE5NkM0My42MTkxIDI1LjI3MDcgNDMuMjY0NCAyNS4zMDggNDIuOTY1OCAyNS4zMDhaTTU0LjU0MTMgMjUuMzA4QzUyLjkxNzMgMjUuMzA4IDUxLjUxNzMgMjUuMDE4NyA1MC4zNDEzIDI0LjQ0QzQ5LjE4NCAyMy44NDI3IDQ4LjI4OCAyMy4wMTIgNDcuNjUzMyAyMS45NDhDNDcuMDM3MyAyMC44NjUzIDQ2LjcyOTMgMTkuNTk2IDQ2LjcyOTMgMTguMTRDNDYuNzI5MyAxNi43MjEzIDQ3LjAyOCAxNS40OCA0Ny42MjUzIDE0LjQxNkM0OC4yMjI3IDEzLjMzMzMgNDkuMDUzMyAxMi40OTMzIDUwLjExNzMgMTEuODk2QzUxLjIgMTEuMjggNTIuNDIyNyAxMC45NzIgNTMuNzg1MyAxMC45NzJDNTQuNzc0NyAxMC45NzIgNTUuNjcwNyAxMS4xNCA1Ni40NzMzIDExLjQ3NkM1Ny4yNzYgMTEuNzkzMyA1Ny45NjY3IDEyLjI2IDU4LjU0NTMgMTIuODc2QzU5LjEyNCAxMy40NzMzIDU5LjU2MjcgMTQuMjEwNyA1OS44NjEzIDE1LjA4OEM2MC4xNiAxNS45NDY3IDYwLjMwOTMgMTYuOTA4IDYwLjMwOTMgMTcuOTcyQzYwLjMwOTMgMTguMzI2NyA2MC4xOTczIDE4LjU5NzMgNTkuOTczMyAxOC43ODRDNTkuNzQ5MyAxOC45NTIgNTkuNDIyNyAxOS4wMzYgNTguOTkzMyAxOS4wMzZINTAuMjAxM1YxNi44NTJINTcuMjU3M0w1Ni44MDkzIDE3LjI0NEM1Ni44MDkzIDE2LjQ3ODcgNTYuNjk3MyAxNS44NDQgNTYuNDczMyAxNS4zNEM1Ni4yNDkzIDE0LjgxNzMgNTUuOTIyNyAxNC40MjUzIDU1LjQ5MzMgMTQuMTY0QzU1LjA4MjcgMTMuOTAyNyA1NC41NjkzIDEzLjc3MiA1My45NTMzIDEzLjc3MkM1My4yNjI3IDEzLjc3MiA1Mi42NzQ3IDEzLjkzMDcgNTIuMTg5MyAxNC4yNDhDNTEuNzA0IDE0LjU2NTMgNTEuMzMwNyAxNS4wMjI3IDUxLjA2OTMgMTUuNjJDNTAuODA4IDE2LjIxNzMgNTAuNjc3MyAxNi45MzYgNTAuNjc3MyAxNy43NzZWMThDNTAuNjc3MyAxOS40MTg3IDUxLjAwNCAyMC40NjQgNTEuNjU3MyAyMS4xMzZDNTIuMzI5MyAyMS44MDggNTMuMzE4NyAyMi4xNDQgNTQuNjI1MyAyMi4xNDRDNTUuMDczMyAyMi4xNDQgNTUuNTg2NyAyMi4wODggNTYuMTY1MyAyMS45NzZDNTYuNzQ0IDIxLjg2NCA1Ny4yODUzIDIxLjY4NjcgNTcuNzg5MyAyMS40NDRDNTguMjE4NyAyMS4yMzg3IDU4LjYwMTMgMjEuMTczMyA1OC45MzczIDIxLjI0OEM1OS4yNzMzIDIxLjMwNCA1OS41MzQ3IDIxLjQ1MzMgNTkuNzIxMyAyMS42OTZDNTkuOTA4IDIxLjkzODcgNjAuMDEwNyAyMi4yMTg3IDYwLjAyOTMgMjIuNTM2QzYwLjA2NjcgMjIuODUzMyA2MC4wMDEzIDIzLjE3MDcgNTkuODMzMyAyMy40ODhDNTkuNjY1MyAyMy43ODY3IDU5LjM4NTMgMjQuMDM4NyA1OC45OTMzIDI0LjI0NEM1OC4zNTg3IDI0LjU5ODcgNTcuNjQgMjQuODYgNTYuODM3MyAyNS4wMjhDNTYuMDUzMyAyNS4yMTQ3IDU1LjI4OCAyNS4zMDggNTQuNTQxMyAyNS4zMDhaTTY0Ljg5NjUgMjUuMjUyQzY0LjIwNTkgMjUuMjUyIDYzLjY3MzkgMjUuMDY1MyA2My4zMDA1IDI0LjY5MkM2Mi45NDU5IDI0LjMxODcgNjIuNzY4NSAyMy43ODY3IDYyLjc2ODUgMjMuMDk2VjEzLjE1NkM2Mi43Njg1IDEyLjQ2NTMgNjIuOTQ1OSAxMS45NDI3IDYzLjMwMDUgMTEuNTg4QzYzLjY3MzkgMTEuMjE0NyA2NC4xODcyIDExLjAyOCA2NC44NDA1IDExLjAyOEM2NS41MTI1IDExLjAyOCA2Ni4wMjU5IDExLjIxNDcgNjYuMzgwNSAxMS41ODhDNjYuNzM1MiAxMS45NDI3IDY2LjkxMjUgMTIuNDY1MyA2Ni45MTI1IDEzLjE1NlYxNC43NTJMNjYuNjA0NSAxMy44MjhDNjcuMDMzOSAxMi45MTMzIDY3LjY2ODUgMTIuMjEzMyA2OC41MDg1IDExLjcyOEM2OS4zNjcyIDExLjIyNCA3MC4zMzc5IDEwLjk3MiA3MS40MjA1IDEwLjk3MkM3Mi41MjE5IDEwLjk3MiA3My40MjcyIDExLjE4NjcgNzQuMTM2NSAxMS42MTZDNzQuODQ1OSAxMi4wMjY3IDc1LjM3NzkgMTIuNjYxMyA3NS43MzI1IDEzLjUyQzc2LjA4NzIgMTQuMzYgNzYuMjY0NSAxNS40MzMzIDc2LjI2NDUgMTYuNzRWMjMuMDk2Qzc2LjI2NDUgMjMuNzg2NyA3Ni4wNzc5IDI0LjMxODcgNzUuNzA0NSAyNC42OTJDNzUuMzQ5OSAyNS4wNjUzIDc0LjgyNzIgMjUuMjUyIDc0LjEzNjUgMjUuMjUyQzczLjQ2NDUgMjUuMjUyIDcyLjk0MTkgMjUuMDY1MyA3Mi41Njg1IDI0LjY5MkM3Mi4yMTM5IDI0LjMxODcgNzIuMDM2NSAyMy43ODY3IDcyLjAzNjUgMjMuMDk2VjE2LjkzNkM3Mi4wMzY1IDE1Ljk4NCA3MS44NTkyIDE1LjMwMjcgNzEuNTA0NSAxNC44OTJDNzEuMTY4NSAxNC40NjI3IDcwLjY0NTkgMTQuMjQ4IDY5LjkzNjUgMTQuMjQ4QzY5LjA0MDUgMTQuMjQ4IDY4LjMyMTkgMTQuNTI4IDY3Ljc4MDUgMTUuMDg4QzY3LjI1NzkgMTUuNjQ4IDY2Ljk5NjUgMTYuMzk0NyA2Ni45OTY1IDE3LjMyOFYyMy4wOTZDNjYuOTk2NSAyNC41MzMzIDY2LjI5NjUgMjUuMjUyIDY0Ljg5NjUgMjUuMjUyWk04NC43Njg5IDI1LjMwOEM4My41NzQyIDI1LjMwOCA4Mi41MTk1IDI1LjAxODcgODEuNjA0OSAyNC40NEM4MC43MDg5IDIzLjg2MTMgODAuMDA4OSAyMy4wMzA3IDc5LjUwNDkgMjEuOTQ4Qzc5LjAwMDkgMjAuODY1MyA3OC43NDg5IDE5LjU4NjcgNzguNzQ4OSAxOC4xMTJDNzguNzQ4OSAxNi42MzczIDc5LjAwMDkgMTUuMzY4IDc5LjUwNDkgMTQuMzA0QzgwLjAwODkgMTMuMjQgODAuNzA4OSAxMi40MTg3IDgxLjYwNDkgMTEuODRDODIuNTE5NSAxMS4yNjEzIDgzLjU3NDIgMTAuOTcyIDg0Ljc2ODkgMTAuOTcyQzg1Ljg1MTUgMTAuOTcyIDg2LjgwMzUgMTEuMjMzMyA4Ny42MjQ5IDExLjc1NkM4OC40NjQ5IDEyLjI3ODcgODkuMDM0MiAxMi45NiA4OS4zMzI5IDEzLjhIODkuMDI0OVY3LjE2NEM4OS4wMjQ5IDYuNDU0NjcgODkuMjAyMiA1LjkyMjY3IDg5LjU1NjkgNS41NjhDODkuOTExNSA1LjE5NDY3IDkwLjQzNDIgNS4wMDggOTEuMTI0OSA1LjAwOEM5MS43OTY5IDUuMDA4IDkyLjMxOTUgNS4xOTQ2NyA5Mi42OTI5IDUuNTY4QzkzLjA2NjIgNS45MjI2NyA5My4yNTI5IDYuNDU0NjcgOTMuMjUyOSA3LjE2NFYyMy4wOTZDOTMuMjUyOSAyMy43ODY3IDkzLjA2NjIgMjQuMzE4NyA5Mi42OTI5IDI0LjY5MkM5Mi4zMzgyIDI1LjA2NTMgOTEuODI0OSAyNS4yNTIgOTEuMTUyOSAyNS4yNTJDOTAuNDgwOSAyNS4yNTIgODkuOTU4MiAyNS4wNjUzIDg5LjU4NDkgMjQuNjkyQzg5LjIzMDIgMjQuMzE4NyA4OS4wNTI5IDIzLjc4NjcgODkuMDUyOSAyMy4wOTZWMjEuMTkyTDg5LjM2MDkgMjIuMjg0Qzg5LjA5OTUgMjMuMTk4NyA4OC41Mzk1IDIzLjkzNiA4Ny42ODA5IDI0LjQ5NkM4Ni44NDA5IDI1LjAzNzMgODUuODcwMiAyNS4zMDggODQuNzY4OSAyNS4zMDhaTTg2LjAyODkgMjIuMTQ0Qzg2LjY0NDkgMjIuMTQ0IDg3LjE3NjkgMjEuOTk0NyA4Ny42MjQ5IDIxLjY5NkM4OC4wNzI5IDIxLjM5NzMgODguNDI3NSAyMC45NTg3IDg4LjY4ODkgMjAuMzhDODguOTUwMiAxOS43ODI3IDg5LjA4MDkgMTkuMDI2NyA4OS4wODA5IDE4LjExMkM4OS4wODA5IDE2Ljc0OTMgODguODAwOSAxNS43NTA3IDg4LjI0MDkgMTUuMTE2Qzg3LjY4MDkgMTQuNDYyNyA4Ni45NDM1IDE0LjEzNiA4Ni4wMjg5IDE0LjEzNkM4NS40MzE1IDE0LjEzNiA4NC44OTk1IDE0LjI3NiA4NC40MzI5IDE0LjU1NkM4My45ODQ5IDE0LjgzNiA4My42MzAyIDE1LjI3NDcgODMuMzY4OSAxNS44NzJDODMuMTI2MiAxNi40NTA3IDgzLjAwNDkgMTcuMTk3MyA4My4wMDQ5IDE4LjExMkM4My4wMDQ5IDE5LjQ3NDcgODMuMjg0OSAyMC40OTIgODMuODQ0OSAyMS4xNjRDODQuNDA0OSAyMS44MTczIDg1LjEzMjkgMjIuMTQ0IDg2LjAyODkgMjIuMTQ0WiIgZmlsbD0iYmxhY2siLz4KPGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXAxXzMxOF8zMDY0KSI+CjxwYXRoIGQ9Ik0xMDUuODU1IDUuMTM1NzRDMTAwLjUxNyA1LjEzNTc0IDk2LjE4ODcgOS40NjM0MSA5Ni4xODg3IDE0LjgwMjRDOTYuMTg4NyAyMC4xNDExIDEwMC41MTcgMjQuNDY5MSAxMDUuODU1IDI0LjQ2OTFDMTExLjE5NCAyNC40NjkxIDExNS41MjIgMjAuMTQxMSAxMTUuNTIyIDE0LjgwMjRDMTE1LjUyMiA5LjQ2MzQxIDExMS4xOTQgNS4xMzU3NCAxMDUuODU1IDUuMTM1NzRaTTEwNS44NTUgMjEuNDY5MUMxMDIuMTczIDIxLjQ2OTEgOTkuMTg4NyAxOC40ODQxIDk5LjE4ODcgMTQuODAyNEM5OS4xODg3IDExLjEyMDcgMTAyLjE3MyA4LjEzNTc0IDEwNS44NTUgOC4xMzU3NEMxMDkuNTM3IDguMTM1NzQgMTEyLjUyMiAxMS4xMjA0IDExMi41MjIgMTQuODAyNEMxMTIuNTIyIDE4LjQ4NDQgMTA5LjUzNyAyMS40NjkxIDEwNS44NTUgMjEuNDY5MVoiIGZpbGw9IiM0NDcyQzQiLz4KPHBhdGggZD0iTTEwNS45MzIgMjQuNjQ1NkMxMTEuMjcgMjQuNjQ1NiAxMTUuNTk4IDIwLjMxNzcgMTE1LjU5OCAxNC45Nzg5QzExNS41OTggOS42NDAxNyAxMTEuMjcgNS4zMTIyNiAxMDUuOTMyIDUuMzEyMjZDMTAwLjU5MyA1LjMxMjI2IDk2LjI2NSA5LjY0MDE3IDk2LjI2NSAxNC45Nzg5Qzk2LjI2NSAyMC4zMTc3IDEwMC41OTMgMjQuNjQ1NiAxMDUuOTMyIDI0LjY0NTZaIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjAuNjY2NjY3IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPHBhdGggZD0iTTEwNS45MzIgMjEuNjQ1NkMxMDkuNjE0IDIxLjY0NTYgMTEyLjU5OCAxOC42NjA4IDExMi41OTggMTQuOTc4OUMxMTIuNTk4IDExLjI5NyAxMDkuNjE0IDguMzEyMjYgMTA1LjkzMiA4LjMxMjI2QzEwMi4yNSA4LjMxMjI2IDk5LjI2NSAxMS4yOTcgOTkuMjY1IDE0Ljk3ODlDOTkuMjY1IDE4LjY2MDggMTAyLjI1IDIxLjY0NTYgMTA1LjkzMiAyMS42NDU2WiIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIwLjY2NjY2NyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjwvZz4KPHBhdGggZD0iTTEzNiA5LjI0MzY5TDEzMi44NDUgNkwxMjcuMDM3IDExLjc1NjNMMTIxLjI1NyA2TDExOCA5LjI0MzY5TDEyMy44MzcgMTVMMTE4IDIwLjc1NjNMMTIxLjI1NyAyNEwxMjcuMDM3IDE4LjI0MzdMMTMyLjg0NiAyNEwxMzYgMjAuNzU2M0wxMzAuMjIgMTVMMTM2IDkuMjQzNjlaIiBmaWxsPSIjRUE1QTQ3Ii8+CjxwYXRoIGQ9Ik0xMzYgOS4yNDM2OUwxMzIuODQ1IDZMMTI3LjAzNyAxMS43NTYzTDEyMS4yNTcgNkwxMTggOS4yNDM2OUwxMjMuODMzIDE1TDExOCAyMC43NTYzTDEyMS4yNTcgMjRMMTI3LjAzNyAxOC4yNDM3TDEzMi44NDYgMjRMMTM2IDIwLjc1NjNMMTMwLjIyIDE1TDEzNiA5LjI0MzY5WiIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIwLjY2NjY2NyIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9nPgo8ZGVmcz4KPGNsaXBQYXRoIGlkPSJjbGlwMF8zMThfMzA2NCI+CjxyZWN0IHdpZHRoPSIxNDAiIGhlaWdodD0iMzAiIGZpbGw9IndoaXRlIi8+CjwvY2xpcFBhdGg+CjxjbGlwUGF0aCBpZD0iY2xpcDFfMzE4XzMwNjQiPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIGZpbGw9IndoaXRlIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg5NCAzKSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM+Cjwvc3ZnPgo=',
+  party: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEyIiBoZWlnaHQ9IjExMiIgdmlld0JveD0iMCAwIDExMiAxMTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02LjUxODczIDEwNy44NjFDOC41MDQ5OCAxMTAuMDE0IDE2LjY4NjIgMTA2LjI2IDIzLjE0MzcgMTAzLjI1QzI3Ljk4MjUgMTAxLjAwMSA0Ny4zNDYyIDkzLjA1NjMgNTYuOTcxMiA4OC45MzVDNTkuNTcgODcuODIzOCA2My4zNSA4Ni4zNzEzIDY2LjA3MTIgODIuNzkyNUM2OC40ODYyIDc5LjYwNzUgNzQuODkxMiA2Ni4wOCA2MS45OTM3IDUyLjM3NzVDNDguOTAzNyAzOC40NjUgMzUuNDIgNDIuMzA2MyAzMC4zOCA0NS44NzYzQzI3LjQxMzcgNDcuOTc2MyAyNC45OTg3IDUyLjcxIDIzLjkxMzcgNTUuMTE2M0MxOS4zMjg3IDY1LjI4MzggMTIuNzkyNSA4My45MTI1IDEwLjEzMjUgOTEuMjM2M0M4LjE4MTIzIDk2LjYzNSA0LjU0OTk4IDEwNS43MjYgNi41MTg3MyAxMDcuODYxWiIgZmlsbD0iI0ZGQzEwNyIvPgo8cGF0aCBkPSJNMjIuNjE4OCA1OC4xNzg3QzIyLjc0MTMgNTkuNzAxMiAyMy4wNDc1IDYyLjE3NzUgMjQuMDk3NSA2Ni45NDYyQzI0LjgxNSA3MC4yMTg3IDI1Ljk4NzUgNzMuNjQ4NyAyNi45NDEzIDc1LjkxNUMyOS44MDI1IDgyLjczMTIgMzMuODE4OCA4NS40Nzg3IDM3Ljg4NzUgODcuNjgzN0M0NC44IDkxLjQyODcgNDkuNDk4OCA5Mi4xMjg3IDQ5LjQ5ODggOTIuMTI4N0w0My44NjM4IDk0LjQzQzQzLjg2MzggOTQuNDMgNDAuNDUxMyA5My43MjEyIDM1Ljc5NjMgOTEuNDI4N0MzMS4zNiA4OS4yNDEyIDI2Ljc0IDg1LjU0IDIzLjM2MjUgNzguMjk1QzIxLjkwMTMgNzUuMTUzNyAyMS4wNTI1IDcyLjEwODcgMjAuNTYyNSA2OS42OTM3QzE5Ljk1ODggNjYuNzAxMiAxOS44NjI1IDY1LjAwMzcgMTkuODYyNSA2NS4wMDM3TDIyLjYxODggNTguMTc4N1pNMTUuNjk3NSA3NS45MjM3QzE1LjY5NzUgNzUuOTIzNyAxNi4zOTc1IDgxLjYwMjUgMjEuMDg3NSA4OC43Njg3QzI2LjU4MjUgOTcuMTUxMiAzNC4yNTYzIDk4LjUyNSAzNC4yNTYzIDk4LjUyNUwyOS4xNTUgMTAwLjYyNUMyOS4xNTUgMTAwLjYyNSAyMy40NTg4IDk4Ljg4MzcgMTguMDQyNSA5MS40OUMxNC42NjUgODYuODc4NyAxMy43MiA4MS4zNjYyIDEzLjcyIDgxLjM2NjJMMTUuNjk3NSA3NS45MjM3Wk0xMC44NDEzIDg5LjM4MTJDMTAuODQxMyA4OS4zODEyIDEyLjExODggOTQuMjgxMiAxNC45MTg4IDk3LjkzODdDMTguMjUyNSAxMDIuMzA1IDIyLjQ5NjMgMTAzLjU3NCAyMi40OTYzIDEwMy41NzRMMTguNTg1IDEwNS4zMDZDMTguNTg1IDEwNS4zMDYgMTUuNjE4OCAxMDQuNjg1IDEyLjM3MjUgMTAwLjU3MkM5LjkwNTAyIDk3LjQ0ODcgOS4yMDUwMiA5My44NjEyIDkuMjA1MDIgOTMuODYxMkwxMC44NDEzIDg5LjM4MTJaIiBmaWxsPSIjRkY4RjAwIi8+CjxwYXRoIG9wYWNpdHk9IjAuNDQiIGQ9Ik04LjcxNTAyIDEwMS44MjRDOC41NDAwMiAxMDEuNDMgOC41NDAwMiAxMDAuOTg0IDguNzIzNzcgMTAwLjU5OUwzMS4wMSA1NC4zODEyTDM0LjY3NjMgNjguMTYyNUwxMS4yMjYzIDEwMi4wMzRDMTAuNTk2MyAxMDIuOTc5IDkuMTc4NzYgMTAyLjg1NiA4LjcxNTAyIDEwMS44MjRaIiBmaWxsPSIjRkZGREU3Ii8+CjxwYXRoIGQ9Ik0zNi40NDM3IDcyLjc5MTJDNDYuODU2MiA4NC45NzEyIDU4LjcxMjUgODMuNDQ4NyA2Mi42NTg3IDgwLjM2ODdDNjYuNjEzNyA3Ny4yOCA2OS43Mzc1IDY2LjY2NjIgNTkuMzY4NyA1NC42ODc1QzQ4LjUwMTIgNDIuMTQgMzYuMTk4NyA0NS43MTg3IDMzLjM1NSA0OC40MzEyQzMwLjUxMTIgNTEuMTQzNyAyNi44ODg3IDYxLjYxNzUgMzYuNDQzNyA3Mi43OTEyWiIgZmlsbD0idXJsKCNwYWludDBfbGluZWFyXzEzNV82ODMpIi8+CjxwYXRoIGQ9Ik03Mi4yMDUgNzcuODA1QzY4LjQwNzUgNzQuNjIgNjYuMzg2MyA3NS4xODg4IDYzLjY3MzggNzYuMzE3NUM2MC4xNzM4IDc3Ljc3IDU0LjY3IDc4Ljg0NjMgNDcuMTk3NSA3Ni4zMTc1TDQ5LjQ0NjMgNzAuOTAxM0M1My44ODI1IDcyLjM5NzUgNTcuMDkzOCA3MS42NzEzIDU5Ljg2NzUgNzAuMDM1QzYzLjQzNzUgNjcuOTM1IDY4LjMyIDY1LjA1NjMgNzUuOTE1IDcxLjQzNUM3OS4wODI1IDc0LjA5NSA4Mi4zMjg4IDc1Ljg2MjUgODQuNzA4OCA3NS4wNTc1Qzg2LjQ0MTMgNzQuNDggODcuMzYgNzEuODk4OCA4Ny44MjM4IDY5Ljg0MjVDODcuODY3NSA2OS42NTg4IDg3LjkzNzUgNjkuMTMzOCA4Ny45OSA2OC42N0M4OC40MSA2NS40NTg4IDg5LjExIDU4LjUyODggOTQuMjcyNSA1NC45ODVDOTkuNzkzOCA1MS4xOTYzIDEwNS41OTUgNTEuMTk2MyAxMDUuNTk1IDUxLjE5NjNMMTA2LjY0NSA2MS42MjYzQzEwMy45NzYgNjEuMjMyNSAxMDIuMTIxIDYxLjc3NSAxMDAuNTU1IDYyLjY0MTNDOTQuNjU3NSA2NS45MjI1IDk5Ljc5MzggNzguNTIyNSA5MC42MTUgODIuNzU3NUM4MS43ODYzIDg2Ljg2MTMgNzQuNTY3NSA3OS43ODI1IDcyLjIwNSA3Ny44MDVaIiBmaWxsPSIjMDNBOUY0Ii8+CjxwYXRoIGQ9Ik0zOS43MjUgNjQuNTA1TDM1LjkyNzUgNjEuMTAxMkM0Mi45MDEyIDUzLjMxMzggNDEuMDYzNyA0Ny41OTEzIDM5LjcyNSA0My40MjYzQzM5LjQ1MzcgNDIuNTg2MyAzOS4yIDQxLjc5IDM5LjAzMzcgNDEuMDI4N0MzOC40Mzg3IDM4LjMzMzcgMzguMzE2MiAzNS45ODg4IDM4LjUgMzMuOTQxMkMzNS44MjI1IDMwLjYwNzUgMzQuNjQxMiAyNy4xMTYyIDM0LjU2MjUgMjYuODhDMzIuOTM1IDIxLjk1MzcgMzQuMTYgMTcuMTUgMzYuOTY4NyAxMi42NDM4QzQyLjY0NzUgMy41IDUyLjkyODcgMy41IDUyLjkyODcgMy41TDU2LjM1ODcgMTIuNjc4OEM1My43NTEyIDEyLjU3MzcgNDUuMjAyNSAxMi43MDUgNDIuNTc3NSAxNi44NDM4QzM5LjI2MTIgMjIuMDU4OCA0MS40NCAyNS4yNzg3IDQxLjU5NzUgMjUuNjQ2MkM0Mi4yMzYyIDI0LjgxNSA0Mi44ODM3IDI0LjE1IDQzLjQ2MTIgMjMuNjMzOEM0Ny42NTI1IDE5LjkxNSA1MS4yOTI1IDE5LjM4MTIgNTMuNjExMiAxOS41OTEyQzU2LjIxODcgMTkuODI3NSA1OC41ODEyIDIxLjE0IDYwLjI3IDIzLjI5MjVDNjIuMTE2MiAyNS42NTUgNjIuODc3NSAyOC43MjYyIDYyLjI5MTIgMzEuNTE3NUM2MS43MjI1IDM0LjIzODggNTkuOTExMiAzNi41NCA1Ny4xOSAzOC4wMDEzQzUyLjQzODcgNDAuNTU2MyA0OC40ODM3IDQwLjIwNjIgNDUuODMyNSAzOS4zMjI1QzQ1Ljg1IDM5LjM4MzcgNDUuODU4NyAzOS40NTM4IDQ1Ljg3NjIgMzkuNTE1QzQ1Ljk3MjUgMzkuOTUyNSA0Ni4xNjUgNDAuNTY1IDQ2LjM5MjUgNDEuMjczOEM0Ny45NDEyIDQ2LjA2ODcgNTAuODIgNTMuNjgxMyAzOS43MjUgNjQuNTA1Wk00Ni4xNTYyIDMxLjY2NjJDNDYuNjYzNyAzMi4wMzM3IDQ3LjE5NzUgMzIuMzQgNDcuNzQ4NyAzMi41NTg4QzQ5LjU4NjIgMzMuMjkzNyA1MS41OSAzMy4wNDg3IDUzLjg2NSAzMS44MjM3QzU1LjIwMzcgMzEuMTA2MiA1NS4zNjEyIDMwLjMzNjMgNTUuNDEzNyAzMC4wODI1QzU1LjU3MTIgMjkuMzIxMyA1NS4zMDg3IDI4LjM1IDU0Ljc0IDI3LjYyMzdDNTQuMjQxMiAyNi45ODUgNTMuNjYzNyAyNi42NTI1IDUyLjk3MjUgMjYuNTgyNUM1MS42NiAyNi40Njg4IDQ5Ljg4MzcgMjcuMyA0OC4xMDc1IDI4Ljg4MzdDNDcuMjU4NyAyOS42NDUgNDYuNjExMiAzMC41ODEyIDQ2LjE1NjIgMzEuNjY2MloiIGZpbGw9IiNGNDQzMzYiLz4KPHBhdGggZD0iTTU0LjkyMzcgNjUuOTMxMkw0OS40OSA2NS43ODI0QzQ5LjQ5IDY1Ljc4MjQgNTIuMDcxMiA1MS4yMDQ5IDYwLjQyNzUgNDguNzU0OUM2MS45OTM3IDQ4LjI5OTkgNjMuNzA4NyA0Ny44MzYyIDY1LjQzMjUgNDcuNTgyNEM2Ni40NTYyIDQ3LjQyNDkgNjguMDc1IDQ3LjE4ODcgNjguODcxMiA0Ni44OTEyQzY5LjA1NSA0NS41MTc0IDY4LjQ3NzUgNDMuNzY3NCA2Ny44MyA0MS43ODEyQzY3LjMyMjUgNDAuMjQxMiA2Ni43OTc1IDM4LjY1NzQgNjYuNTE3NSAzNi45MjQ5QzY1Ljk3NSAzMy41NDc0IDY2Ljg3NjIgMzAuNTYzNyA2OS4wNTUgMjguNTA3NEM3MS43MTUgMjYuMDEzNyA3Ni4wMTEyIDI1LjIxNzQgODAuODU4NyAyNi4zMTk5QzgzLjYyMzcgMjYuOTQ5OSA4NS42NjI1IDI4LjMwNjIgODcuNDU2MiAyOS40OTYyQzkwLjAyIDMxLjIwMjQgOTEuNTE2MiAzMi4wNjg3IDk0LjY0ODcgMjkuOTU5OUM5OC40Mzc1IDI3LjQwNDkgOTMuNDg1IDE3LjQwMzcgOTAuODUxMiAxMS42Mjg3TDEwMC42NzcgNy41MzM2OUMxMDEuOTk5IDEwLjQyMTIgMTA4LjM3NyAyNS4yNzg3IDEwNC4xNjkgMzMuNzU3NEMxMDIuNzUxIDM2LjYwOTkgMTAwLjMxIDM4LjQ5OTkgOTcuMTA3NSAzOS4yMDg3QzkwLjE0MjUgNDAuNzY2MiA4Ni4wNjUgMzguMDUzNyA4My4wOSAzNi4wNzYyQzgxLjY4MTIgMzUuMTM5OSA4MC40NDc1IDM0LjQwNDkgNzkuMTA4NyAzNC4wMTk5QzY5LjgwNzUgMzEuMzY4NyA4Mi43OTI1IDQ1LjA1MzcgNzYuNzExMiA1MS4yMDQ5QzczLjA2MjUgNTQuODg4NyA2NC4xNDYyIDU1Ljg1OTkgNjMuNTY4NyA1NS45OTk5QzU3LjgyODcgNTcuMzgyNCA1NC45MjM3IDY1LjkzMTIgNTQuOTIzNyA2NS45MzEyWiIgZmlsbD0iI0Y0OEZCMSIvPgo8cGF0aCBkPSJNMzguNDkxMiAzMy45NDEzQzM4LjMyNSAzNS44NjYzIDM4LjI0NjIgMzcuMDEyNSAzOC43NDUgMzkuNTE1QzQxLjE1MTIgNDEuMjgyNSA0Ni4zOTI1IDQxLjI4MjUgNDYuMzkyNSA0MS4yODI1QzQ2LjE2NSA0MC41NzM4IDQ1Ljk2MzcgMzkuOTYxMyA0NS44NzYyIDM5LjUyMzhDNDUuODU4NyAzOS40NjI1IDQ1Ljg1IDM5LjM5MjUgNDUuODMyNSAzOS4zMzEzQzQwLjUwMzcgMzYuNjcxMyAzOC40OTEyIDMzLjk0MTMgMzguNDkxMiAzMy45NDEzWiIgZmlsbD0iI0M5MkIyNyIvPgo8cGF0aCBkPSJNMjcuNTg4OCA0Mi41NkwxOC41NDEzIDM4LjEyMzhMMjMuMDQ3NSAzMS42MTM4TDMwLjE0MzggMzYuMzEyNUwyNy41ODg4IDQyLjU2WiIgZmlsbD0iI0ZGQzEwNyIvPgo8cGF0aCBkPSJNMTQuMjUzNyAzMC4yNzVDOS42MzM3MiAyOS42NTM3IDQuOTI2MjIgMjUuNzMzNyA0LjQwOTk3IDI1LjI4NzVMOC45NTEyMiAxOS45NTg3QzEwLjMyNSAyMS4xMjI1IDEzLjIzODcgMjMuMDczNyAxNS4xOSAyMy4zMzYyTDE0LjI1MzcgMzAuMjc1WiIgZmlsbD0iI0ZCOEMwMCIvPgo8cGF0aCBkPSJNMjIuNDA4NyAxOC42MTEyTDE1Ljc1ODcgMTYuNDMyNUMxNi41MiAxNC4xMDUgMTYuNzIxMiAxMS41OTM3IDE2LjMyNzUgOS4xNjk5N0wyMy4yNCA4LjA1ODcyQzIzLjgwODcgMTEuNTc2MiAyMy41MiAxNS4yMjUgMjIuNDA4NyAxOC42MTEyWiIgZmlsbD0iIzAzQTlGNCIvPgo8cGF0aCBkPSJNNjMuOTM4OCAxMy40MDkzTDcwLjc3NyAxMS45MTMxTDcyLjc1MTggMjAuOTM5Nkw2NS45MTM3IDIyLjQzNThMNjMuOTM4OCAxMy40MDkzWiIgZmlsbD0iI0ZCOEMwMCIvPgo8cGF0aCBkPSJNODAuOTAyNSAxNS41NDg3TDc2LjA5IDEwLjQ2NUM3OC42MSA4LjA3NjIzIDc5LjE4NzUgNC45NTI0OCA3OS4xODc1IDQuOTE3NDhMODYuMSA2LjA0NjIzQzg2LjAxMjUgNi41OTc0OCA4NS4xMjg3IDExLjU1IDgwLjkwMjUgMTUuNTQ4N1oiIGZpbGw9IiNGRkMxMDciLz4KPHBhdGggZD0iTTgzLjU3NDggNDIuNTA3Nkw4OS42ODg0IDQwLjU5NjZMOTEuNzc2MSA0Ny4yNzgxTDg1LjY2MjUgNDkuMTg5MUw4My41NzQ4IDQyLjUwNzZaIiBmaWxsPSIjRkI4QzAwIi8+CjxwYXRoIGQ9Ik04NS4zNTYzIDk4LjkwMTNMNzguNCA5OC4wNzg4Qzc4LjY5NzUgOTUuNjAyNSA3Ni44NTEyIDkyLjU2NjMgNzYuMzQzOCA5MS44OTI1TDgxLjk0MzggODcuNjkyNUM4Mi4zNjM4IDg4LjI0MzggODYuMDEyNSA5My4yOTI1IDg1LjM1NjMgOTguOTAxM1oiIGZpbGw9IiNGNDQzMzYiLz4KPHBhdGggZD0iTTEwNS4zMjQgOTAuMDI4OEMxMDIuNzA3IDg5LjYzNSAxMDAuMDMgODkuNDc3NSA5Ny4zODc1IDg5LjU3MzhMOTcuMTUxMiA4Mi41NzM4QzEwMC4yMjIgODIuNDY4OCAxMDMuMzI5IDgyLjY0MzggMTA2LjM2NSA4My4xMDc1TDEwNS4zMjQgOTAuMDI4OFoiIGZpbGw9IiNGQjhDMDAiLz4KPHBhdGggZD0iTTk1LjkxMjIgOTkuNjY0MkwxMDAuODMgOTQuNjgyOUwxMDcuNTk4IDEwMS4zNjZMMTAyLjY4IDEwNi4zNDdMOTUuOTEyMiA5OS42NjQyWiIgZmlsbD0iI0Y0OEZCMSIvPgo8cGF0aCBkPSJNODEuNDY1MSA1NS40MTcyTDg2LjUyMjYgNjEuMjAwMUw4MC43Mzk3IDY2LjI1NzZMNzUuNjgyMyA2MC40NzQ3TDgxLjQ2NTEgNTUuNDE3MloiIGZpbGw9IiNGNDQzMzYiLz4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0icGFpbnQwX2xpbmVhcl8xMzVfNjgzIiB4MT0iNjUuMDg2IiB5MT0iNTQuMTA5MSIgeDI9IjM5LjAzOTkiIHkyPSI2OS43MzY2IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxzdG9wIG9mZnNldD0iMC4wMjQiIHN0b3AtY29sb3I9IiM4RjQ3MDAiLz4KPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNzAzRTJEIi8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPC9zdmc+Cg==',
+};
+
+/* Logo 2.1 with the wordmark below it */
+const brandStack = () => `
+  <img class="logo-img" src="${ASSETS.logo}" width="98" height="98" alt="">
+  <img class="wordmark-img big" src="${ASSETS.word}" width="131" height="28" alt="ExtendOX">`;
+const wordmark   = () => `<img class="wordmark-img" src="${ASSETS.word}" width="112" height="24" alt="ExtendOX">`;
+const partyBig   = () => `<img class="party-img" src="${ASSETS.party}" width="112" height="112" alt="">`;
+
+/* ================================== state ================================== */
+const DEFAULTS = {
+  lang: 'en',
+  timeLimit: true,
+  minutes: 5,
+  mode: 'fast',          // fast = 4 to win, classic = 5, pro = 6
+  blockCentre: true,     // the first mark may not go in the middle
+  unlimited: false,      // no cap on how far the board may grow
+  maxW: 10,              // maximum number of columns
+  maxH: 10,              // maximum number of rows
+  undoOn: true,          // undo button enabled
+};
+
+const store = {
+  load() { try { return JSON.parse(localStorage.getItem('extendox') || '{}'); } catch { return {}; } },
+  save() {
+    const keep = {};
+    Object.keys(DEFAULTS).forEach(k => keep[k] = S[k]);
+    try { localStorage.setItem('extendox', JSON.stringify(keep)); } catch { /* private mode */ }
+  }
+};
+
+const S = Object.assign({
+  screen: 'home',
+  stack: [],                                       // navigation history for ←
+  game: null,
+  dialog: null,                                    // 'end' | 'undoOff' | null
+  modeOpen: false, langOpen: false,                // a dropdown is showing
+  lastPlaced: null,                                // [r,c] – drives the pop-in animation
+}, DEFAULTS, store.load());
+
+/* translation lookup — falls back to English for anything missing */
+function t(key, ...args) {
+  const v = (T[S.lang] || T.en)[key] ?? T.en[key];
+  return typeof v === 'function' ? v(...args) : v;
+}
+/* the mode labels live in the translations, the numbers in MODES */
+const modeLabel = k => t('mode' + k[0].toUpperCase() + k.slice(1));
+
+/* how far the board may grow right now */
+const limits = () => S.unlimited
+  ? { maxRows: Infinity, maxCols: Infinity }
+  : { maxRows: S.maxH, maxCols: S.maxW };
+
+/* marks in a row needed to win, for the mode currently selected */
+const winLen = () => MODES[S.mode].win;
+
+function newGame() {
+  const secs = S.minutes * 60;
+  return {
+    winLen: winLen(),       // frozen for the whole match
+    rows: 3, cols: 3,
+    grid: [[null, null, null], [null, null, null], [null, null, null]],
+    turn: 'O',              // Player O opens the game (per the tutorial design)
+    pendRow: false,         // owes the board one extra ROW    (a column filled up)
+    pendCol: false,         // owes the board one extra COLUMN (a row filled up)
+    moveNo: 0,
+    over: false, winner: null, reason: null, winLine: null,
+    clock: { O: secs, X: secs },
+    history: [],
+    notice: null, noticeAt: 0,
+  };
+}
+
+const other   = who => (who === 'X' ? 'O' : 'X');
+const colorOf = who => (who === 'X' ? RED : BLUE);
+const clamp   = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+/* ------------------------------- game rules -------------------------------- */
+const snapshot = g => JSON.stringify({
+  rows: g.rows, cols: g.cols, grid: g.grid, turn: g.turn,
+  pendRow: g.pendRow, pendCol: g.pendCol, moveNo: g.moveNo,
+  over: g.over, winner: g.winner, reason: g.reason, winLine: g.winLine,
+});
+
+function canPlace(g, r, c) {
+  return !g.over && !g.pendRow && !g.pendCol && !S.dialog && !g.grid[r][c];
+}
+
+/* longest run of identical marks through (r,c); null when shorter than g.winLen */
+function findWin(g, r, c) {
+  const who = g.grid[r][c];
+  for (const [dr, dc] of [[0, 1], [1, 0], [1, 1], [1, -1]]) {
+    const line = [[r, c]];
+    for (const step of [1, -1]) {
+      let rr = r + dr * step, cc = c + dc * step;
+      while (rr >= 0 && rr < g.rows && cc >= 0 && cc < g.cols && g.grid[rr][cc] === who) {
+        step === 1 ? line.push([rr, cc]) : line.unshift([rr, cc]);
+        rr += dr * step; cc += dc * step;
+      }
+    }
+    if (line.length >= (g.winLen || 4)) return line;
+  }
+  return null;
+}
+
+const boardFull = g => g.grid.every(row => row.every(Boolean));
+
+function place(r, c) {
+  const g = S.game;
+  if (!canPlace(g, r, c)) return;
+
+  // "To ensure fairness, the first mark cannot be placed in the middle of the grid!"
+  if (S.blockCentre && g.moveNo === 0 && r === 1 && c === 1) {
+    setNotice(g, t('centreNotice'));
+    return render();
+  }
+
+  g.history.push(snapshot(g));
+  g.grid[r][c] = g.turn;
+  g.moveNo++;
+  S.lastPlaced = [r, c];
+  g.notice = null;
+  resetView();
+
+  const line = findWin(g, r, c);
+  if (line) { endGame(g, g.turn, 'line', line); return render(); }
+
+  // a filled COLUMN owes the board a new row, a filled ROW owes it a new column
+  let colFull = true; for (let i = 0; i < g.rows; i++) if (!g.grid[i][c]) { colFull = false; break; }
+  let rowFull = true; for (let j = 0; j < g.cols; j++) if (!g.grid[r][j]) { rowFull = false; break; }
+
+  const L = limits(), blocked = [];
+  if (colFull) { g.rows < L.maxRows ? g.pendRow = true : blocked.push('row'); }
+  if (rowFull) { g.cols < L.maxCols ? g.pendCol = true : blocked.push('col'); }
+  if (blocked.length) {
+    const what = blocked.length === 2 ? t('limBoth') : t(blocked[0] === 'row' ? 'limRow' : 'limCol');
+    setNotice(g, t('limitNotice', S.maxW, S.maxH, what));
+  }
+
+  if (!g.pendRow && !g.pendCol) finishTurn(g);
+  render();
+}
+
+function extend(side) {
+  const g = S.game;
+  if (g.over) return;
+  const isRow = side === 'top' || side === 'bottom';
+  if (isRow ? !g.pendRow : !g.pendCol) return;
+
+  g.history.push(snapshot(g));
+  resetView();
+  if (isRow) {
+    const fresh = new Array(g.cols).fill(null);
+    side === 'top' ? g.grid.unshift(fresh) : g.grid.push(fresh);
+    g.rows++; g.pendRow = false;
+  } else {
+    g.grid.forEach(row => side === 'left' ? row.unshift(null) : row.push(null));
+    g.cols++; g.pendCol = false;
+  }
+  if (!g.pendRow && !g.pendCol) finishTurn(g);
+  render();
+}
+
+function finishTurn(g) {
+  // stalemate: the board is completely full and cannot grow any further
+  if (boardFull(g)) return endGame(g, null, 'draw', null);
+  g.turn = other(g.turn);
+}
+
+function endGame(g, winner, reason, line) {
+  g.over = true; g.winner = winner; g.reason = reason; g.winLine = line;
+  g.pendRow = g.pendCol = false; g.notice = null;
+}
+
+function setNotice(g, text) {
+  g.notice = text; g.noticeAt = Date.now();
+  const at = g.noticeAt;
+  setTimeout(() => { if (S.game === g && g.noticeAt === at) { g.notice = null; render(); } }, 4600);
+}
+
+/* Undo steps back one action – a placement or an extension choice.
+   Clocks are deliberately not rewound: time spent stays spent. */
+function undo() {
+  const g = S.game;
+  if (!g.history.length) return;
+  Object.assign(g, JSON.parse(g.history.pop()));
+  S.lastPlaced = null; g.notice = null;
+  resetView();
+  render();
+}
+
+/* --------------------------------- clocks ---------------------------------- */
+let clockRef = Date.now();
+setInterval(() => {
+  const g = S.game;
+  const now = Date.now();
+  const running = g && S.timeLimit && !g.over && S.screen === 'game' && !S.dialog;
+  if (!running) { clockRef = now; return; }
+  const before = Math.ceil(g.clock[g.turn]);
+  g.clock[g.turn] = Math.max(0, g.clock[g.turn] - (now - clockRef) / 1000);
+  clockRef = now;
+  if (g.clock[g.turn] <= 0) { endGame(g, other(g.turn), 'time', null); render(); }
+  else if (Math.ceil(g.clock[g.turn]) !== before) paintClocks();
+}, 200);
+
+const mmss = s => {
+  s = Math.max(0, Math.ceil(s));
+  return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+};
+
+function paintClocks() {
+  const g = S.game; if (!g) return;
+  ['O', 'X'].forEach(who => {
+    const el = document.querySelector(`[data-clock="${who}"]`);
+    if (!el) return;
+    el.textContent = mmss(g.clock[who]);
+    el.classList.toggle('active', !g.over && g.turn === who);
+    el.classList.toggle('dead', g.clock[who] <= 0);
+  });
+}
+
+/* ================================ rendering ================================ */
+function render() {
+  $app.innerHTML = ({
+    home: viewHome, game: viewGame, settings: viewSettings,
+    tutorial: viewTutorial, imprint: viewImprint,
+  })[S.screen]();
+  if (S.screen === 'game') layoutBoard();
+  placeModeMenu();
+}
+
+/* Open a dropdown on whichever side has more room and cap its height so it can
+   never run off the screen — the language list is seven rows tall. */
+function placeModeMenu() {
+  const m = document.querySelector('.selmenu');
+  if (!m) return;
+  m.classList.remove('up'); m.style.maxHeight = '';
+  const chip = m.parentElement.querySelector('.selchip').getBoundingClientRect();
+  const a = $app.getBoundingClientRect();
+  const below = a.bottom - chip.bottom - 16;
+  const above = chip.top - a.top - 16;
+  const up = m.scrollHeight > below && above > below;
+  m.classList.toggle('up', up);
+  m.style.maxHeight = Math.max(110, Math.floor(up ? above : below)) + 'px';
+}
+
+/* shared little controls ---------------------------------------------------- */
+const toggle = (act, on, label) =>
+  `<button class="toggle ${on ? 'on' : ''}" data-act="${act}" aria-label="${label}"><i></i></button>`;
+
+const numField = (name, unit, off) => {
+  const spec = NUM[name];
+  return `<span class="chip numchip${off ? ' off' : ''}">${off
+    ? `<span class="num">∞</span>`
+    : `<input class="num" type="text" inputmode="numeric" maxlength="2" data-num="${name}" value="${S[spec.key]}">`
+    }<span class="unit">${unit}</span></span>`;
+};
+
+const settingRow = (label, control) =>
+  `<div class="row"><span class="row-label">${label}</span>${control}</div>`;
+
+/* Playing-mode dropdown, built from the app's own card / list language rather
+   than a native <select>, which cannot be styled. */
+const dropdown = (which, open, label, hint, keys, nameOf, hintOf, current) => `
+  <div class="selwrap">
+    <button class="chip selchip${open ? ' open' : ''}" data-act="${which}Menu"
+            aria-haspopup="listbox" aria-expanded="${open}" aria-label="${label}">
+      <span class="num">${nameOf(current)}</span>
+      <span class="unit">${hintOf(current)}</span>
+      <span class="caret">${IC.caret(14)}</span>
+    </button>
+    ${open ? `<div class="selmenu" role="listbox">
+      ${keys.map(k => `
+        <button role="option" aria-selected="${k === current}"
+                class="${k === current ? 'sel' : ''}" data-act="pick${which[0].toUpperCase() + which.slice(1)}" data-key="${k}">
+          <span class="name">${nameOf(k)}</span>
+          <span class="hint">${hintOf(k)}</span>
+        </button>`).join('')}
+    </div>` : ''}
+  </div>`;
+
+const modeField = () => dropdown('mode', S.modeOpen, t('mode'), '', MODE_KEYS,
+  modeLabel, k => t('toWin', MODES[k].win), S.mode);
+
+const langField = () => dropdown('lang', S.langOpen, t('language'), '', LANG_KEYS,
+  k => LANGS[k].name, k => LANGS[k].code, S.lang);
+
+/* --------------------------------- home ----------------------------------- */
+function viewHome() {
+  return `
+  <div class="screen screen-home">
+    <div class="home-top">
+      <button class="iconbtn" data-act="go" data-to="tutorial" aria-label="${t('tutorial')}">${IC.bulb()}</button>
+      <button class="iconbtn" data-act="go" data-to="settings" aria-label="${t('settings')}">${IC.sliders()}</button>
+    </div>
+
+    <div class="home-brand">${brandStack()}</div>
+
+    <div class="sp" style="flex:1.5"></div>
+    <button class="btn-play" data-act="play" style="align-self:center">${t('playNow')}</button>
+    <div class="sp" style="flex:1"></div>
+
+    <div class="card settings-card">
+      ${settingRow(t('timeLimit'), toggle('toggleTime', S.timeLimit, t('timeLimit')))}
+      ${settingRow(t('minutesPerPlayer'), S.timeLimit
+        ? numField('minutes', t('minUnit'))
+        : `<span class="chip off">-</span>`)}
+      ${settingRow(t('mode'), modeField())}
+    </div>
+    <div class="sp" style="flex:1.9"></div>
+  </div>`;
+}
+
+/* --------------------------------- game ----------------------------------- */
+function indicator() {
+  const g = S.game;
+  const tint = (col, ic) => `<span class="tint" style="color:${col}">${ic}</span>`;
+  if (g.over) {
+    if (g.reason === 'draw') return `<span class="emo24">🤝</span>`;
+    return tint(colorOf(g.winner), IC.party(24));
+  }
+  const col = colorOf(g.turn);
+  if (g.pendRow && g.pendCol) return tint(col, IC.extBoth(28));
+  if (g.pendRow) return tint(col, IC.extRow(24));
+  if (g.pendCol) return tint(col, IC.extCol(24));
+  return smallMark(g.turn, 24);
+}
+
+function announcement() {
+  const g = S.game;
+  if (!g.over) return '';
+  const draw = g.reason === 'draw';
+  const who = draw ? t('draw')
+    : `${smallMark(g.winner, 24)}<span>${g.reason === 'time' ? t('winsByTime') : t('wins')}</span>`;
+  return `
+  <div class="announce">
+    <div class="party">${draw ? '<span class="emo-draw">🤝</span>' : partyBig()}</div>
+    <div class="col">
+      <div class="who">${who}</div>
+      <button class="btn-play" data-act="play">${t('playAgain')}</button>
+    </div>
+  </div>`;
+}
+
+/* the bright clock is the one whose turn it is; an expired one turns white */
+function clockChip(g, who) {
+  const cls = [who === 'X' ? 'red' : 'blue'];
+  if (!g.over && g.turn === who) cls.push('active');
+  if (g.clock[who] <= 0) cls.push('dead');
+  return `<span class="clock ${cls.join(' ')}" data-clock="${who}">${mmss(g.clock[who])}</span>`;
+}
+
+function viewGame() {
+  const g = S.game;
+  const home = g.over ? `data-act="go" data-to="home"` : `data-act="askEnd"`;
+  const undoOff = !S.undoOn;
+  return `
+  <div class="screen screen-game">
+    <div class="topbar">
+      <button class="iconbtn flat" ${home} aria-label="${t('t_home')}">${IC.home(24)}</button>
+      ${S.timeLimit ? `<div class="clocks">${clockChip(g, 'O')}${clockChip(g, 'X')}</div>` : wordmark()}
+      <button class="iconbtn flat" data-act="go" data-to="settings" aria-label="${t('settings')}">${IC.sliders(24)}</button>
+    </div>
+
+    ${announcement()}
+
+    <div class="board-area" id="boardArea"></div>
+
+    ${g.notice ? `<div class="notice">${g.notice}</div>` : ''}
+
+    <div class="bottombar">
+      <button class="iconbtn${undoOff ? ' off' : ''}" data-act="undo" aria-label="${t('a_undo')}"
+        ${undoOff || g.history.length ? '' : 'disabled'}>${IC.undo(24)}</button>
+
+      <div class="zoombar hidden" id="zoomBar">
+        <button data-act="zoom" data-dir="-1" aria-label="${t('a_zoomOut')}">${IC.zoomOut(22)}</button>
+        <span class="zsep"></span>
+        <button data-act="zoom" data-dir="1" aria-label="${t('a_zoomIn')}">${IC.zoomIn(22)}</button>
+      </div>
+
+      <div class="iconbtn" aria-live="polite">${indicator()}</div>
+    </div>
+
+    ${dialogHTML()}
+  </div>`;
+}
+
+function dialogHTML() {
+  if (S.dialog === 'end') return `
+    <div class="overlay">
+      <div class="dialog">
+        <p>${t('endQuestion')}</p>
+        <div class="acts">
+          <button data-act="endGame">${t('endYes')}</button>
+          <button class="cancel" data-act="closeDialog">${t('endNo')}</button>
+        </div>
+      </div>
+    </div>`;
+  if (S.dialog === 'undoOff') return `
+    <div class="overlay">
+      <div class="dialog">
+        <p>${t('undoOffMsg')}</p>
+        <div class="acts">
+          <button data-act="go" data-to="settings">${t('goSettings')}</button>
+          <button class="cancel" data-act="closeDialog">${t('close')}</button>
+        </div>
+      </div>
+    </div>`;
+  return '';
+}
+
+/* --------------------------- board sizing & view --------------------------- */
+/* The board is always drawn at BASE_CELL and scaled with a CSS transform, so
+   zooming and panning never need a re-render.
+     view.k  = current scale (geo.kFit … 1)
+     geo.kFit = the scale at which the whole board (plus the room reserved for
+                the grey extension bars) fits into the board area              */
+const view = { k: 0, px: 0, py: 0 };
+/* fitW/fitH  – board + the space reserved for the grey bars (drives kFit)
+   panW/panH  – what is actually painted right now (drives the pan limits)   */
+let geo = { kFit: 1, areaW: 0, areaH: 0, fitW: 0, fitH: 0, panW: 0, panH: 0 };
+
+const resetView = () => { view.k = 0; view.px = 0; view.py = 0; };
+/* zoom & drag are only offered once the cells have become too small to tap
+   comfortably — on a normal 3 × 3 board nothing changes. */
+const zoomable  = () => geo.kFit * BASE_CELL < MIN_TOUCH;
+
+function layoutBoard() {
+  const area = document.getElementById('boardArea');
+  if (!area) return;
+  const g = S.game, L = limits();
+
+  // Room for the two grey bars is reserved on every axis that can still grow,
+  // so the board never resizes the moment they pop up.
+  const grow  = !g.over;
+  const spanC = g.cols + (grow && g.cols < L.maxCols ? 2 : 0);
+  const spanR = g.rows + (grow && g.rows < L.maxRows ? 2 : 0);
+
+  // The bottom note is anchored to the screen, so measure how much of the board
+  // area it actually covers instead of guessing — its height varies with the
+  // wording and the screen width.
+  const note = document.querySelector('.notice');
+  let slot = 0;
+  if (note) slot = Math.max(0, area.getBoundingClientRect().bottom - (note.getBoundingClientRect().top - NOTICE_GAP));
+  area.style.paddingBottom = slot ? slot + 'px' : '';
+
+  geo.areaW = area.clientWidth;
+  geo.areaH = area.clientHeight - slot;
+  geo.fitW = spanC * BASE_CELL;
+  geo.fitH = spanR * BASE_CELL;
+  geo.panW = (g.cols + (g.pendCol ? 2 : 0)) * BASE_CELL;
+  geo.panH = (g.rows + (g.pendRow ? 2 : 0)) * BASE_CELL;
+  geo.kFit = Math.min(1, (geo.areaW - 2) / geo.fitW, (geo.areaH - 2) / geo.fitH);
+
+  if (!view.k || view.k < geo.kFit) { view.k = geo.kFit; view.px = view.py = 0; }
+  view.k = clamp(view.k, geo.kFit, 1);
+
+  area.innerHTML = boardHTML();
+  area.classList.toggle('zoomable', zoomable());
+  const zb = document.getElementById('zoomBar');
+  if (zb) zb.classList.toggle('hidden', !zoomable());
+  applyView();
+  S.lastPlaced = null;   // the pop animation plays exactly once
+}
+addEventListener('resize', () => { if (S.screen === 'game') layoutBoard(); });
+
+function clampPan() {
+  const maxX = Math.max(0, (geo.panW * view.k - geo.areaW) / 2);
+  const maxY = Math.max(0, (geo.panH * view.k - geo.areaH) / 2);
+  view.px = clamp(view.px, -maxX, maxX);
+  view.py = clamp(view.py, -maxY, maxY);
+}
+
+function applyView() {
+  clampPan();
+  const b = document.querySelector('.board');
+  if (b) b.style.transform = `translate(${view.px}px, ${view.py}px) scale(${view.k})`;
+}
+
+/* zoom towards a point q (in board-area coordinates, relative to its centre) */
+function zoomTo(k, qx = 0, qy = 0) {
+  const k2 = clamp(k, geo.kFit, 1);
+  if (k2 === view.k) return;
+  const f = k2 / view.k;
+  view.px = qx - (qx - view.px) * f;
+  view.py = qy - (qy - view.py) * f;
+  view.k = k2;
+  applyView();
+}
+
+function boardHTML() {
+  const g = S.game;
+  const cell = BASE_CELL, lw = 6, rad = 15;
+  const W = g.cols * cell, H = g.rows * cell;
+  const faded = g.over || S.dialog;
+
+  let h = `<div class="board${faded ? ' faded' : ''}" style="width:${W}px;height:${H}px">`;
+
+  for (let r = 0; r < g.rows; r++) for (let c = 0; c < g.cols; c++) {
+    const v = g.grid[r][c];
+    const live = !faded && canPlace(g, r, c);
+    const pop = S.lastPlaced && S.lastPlaced[0] === r && S.lastPlaced[1] === c;
+    h += `<div class="cell${live ? ' live' : ''}" ${live ? `data-act="place" data-r="${r}" data-c="${c}"` : ''}
+            style="left:${c * cell}px;top:${r * cell}px;width:${cell}px;height:${cell}px"
+          >${v ? mark(v, cell * .775, pop) : ''}</div>`;
+  }
+  h += gridLines(g.rows, g.cols, cell, lw, '#000');
+
+  if (!faded) {
+    if (g.pendRow) h += strip('top', g.rows, g.cols, cell, lw, rad, true) + strip('bottom', g.rows, g.cols, cell, lw, rad, true);
+    if (g.pendCol) h += strip('left', g.rows, g.cols, cell, lw, rad, true) + strip('right', g.rows, g.cols, cell, lw, rad, true);
+  }
+
+  if (g.over && g.winLine) {
+    const [r0, c0] = g.winLine[0], [r1, c1] = g.winLine[g.winLine.length - 1];
+    const x0 = (c0 + .5) * cell, y0 = (r0 + .5) * cell, x1 = (c1 + .5) * cell, y1 = (r1 + .5) * cell;
+    const len = Math.hypot(x1 - x0, y1 - y0) || 1, ex = .42 * cell;
+    const ux = (x1 - x0) / len * ex, uy = (y1 - y0) / len * ex;
+    h += `<svg class="winline" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+            <line x1="${x0 - ux}" y1="${y0 - uy}" x2="${x1 + ux}" y2="${y1 + uy}"
+              stroke="${colorOf(g.winner)}" stroke-opacity=".55"
+              stroke-width="${cell * .075}" stroke-linecap="round"/></svg>`;
+  }
+  return h + '</div>';
+}
+
+function gridLines(rows, cols, cell, lw, color) {
+  const W = cols * cell, H = rows * cell;
+  let h = '';
+  for (let i = 1; i < cols; i++)
+    h += `<div class="gl" style="left:${i * cell - lw / 2}px;top:0;width:${lw}px;height:${H}px;background:${color}"></div>`;
+  for (let j = 1; j < rows; j++)
+    h += `<div class="gl" style="left:0;top:${j * cell - lw / 2}px;width:${W}px;height:${lw}px;background:${color}"></div>`;
+  return h;
+}
+
+/* one translucent grey "new row / new column" bar hugging the board.
+   The edge that touches the grid stays square; the outer corners are rounded. */
+function strip(side, rows, cols, cell, lw, rad, interactive) {
+  const W = cols * cell, H = rows * cell;
+  const horizontal = side === 'top' || side === 'bottom';        // a new ROW
+  const box = horizontal
+    ? { l: 0, t: side === 'top' ? -cell : H, w: W, h: cell }
+    : { l: side === 'left' ? -cell : W, t: 0, w: cell, h: H };
+  const radius = {
+    top:    `${rad}px ${rad}px 0 0`,
+    bottom: `0 0 ${rad}px ${rad}px`,
+    left:   `${rad}px 0 0 ${rad}px`,
+    right:  `0 ${rad}px ${rad}px 0`,
+  }[side];
+
+  let inner = '';
+  if (horizontal) {
+    for (let i = 1; i < cols; i++)
+      inner += `<div class="gsep" style="left:${i * cell - lw / 2}px;top:0;width:${lw}px;height:${cell}px"></div>`;
+    inner += `<div class="gsep" style="left:0;${side === 'top' ? 'bottom' : 'top'}:0;width:${W}px;height:${lw}px"></div>`;
+  } else {
+    for (let j = 1; j < rows; j++)
+      inner += `<div class="gsep" style="top:${j * cell - lw / 2}px;left:0;height:${lw}px;width:${cell}px"></div>`;
+    inner += `<div class="gsep" style="top:0;${side === 'left' ? 'right' : 'left'}:0;height:${H}px;width:${lw}px"></div>`;
+  }
+  return `<div class="ghost" ${interactive ? `data-act="extend" data-side="${side}"` : ''}
+      style="left:${box.l}px;top:${box.t}px;width:${box.w}px;height:${box.h}px;border-radius:${radius}">
+      ${inner}<div class="gplus">${IC.plus(Math.round(cell * .52))}</div></div>`;
+}
+
+/* ------------------------- zoom / pan gestures ----------------------------- */
+const gest = { pts: new Map(), mode: null, sx: 0, sy: 0, px: 0, py: 0, k: 1, dist: 0, moved: false };
+let swallowClick = false;
+
+const areaCentre = area => {
+  const r = area.getBoundingClientRect();
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+};
+
+$app.addEventListener('pointerdown', e => {
+  const area = e.target.closest('.board-area');
+  if (!area || !zoomable()) return;
+  gest.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (gest.pts.size === 1) {
+    gest.mode = 'pan'; gest.moved = false;
+    gest.sx = e.clientX; gest.sy = e.clientY; gest.px = view.px; gest.py = view.py;
+  } else if (gest.pts.size === 2) {
+    const [a, b] = [...gest.pts.values()];
+    gest.mode = 'pinch'; gest.moved = true;
+    gest.dist = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+    gest.k = view.k; gest.px = view.px; gest.py = view.py;
+  }
+  document.querySelector('.board')?.classList.add('nudge');
+});
+
+$app.addEventListener('pointermove', e => {
+  if (!gest.pts.has(e.pointerId)) return;
+  gest.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  const area = document.getElementById('boardArea');
+  if (!area) return;
+
+  if (gest.mode === 'pan' && gest.pts.size === 1) {
+    const dx = e.clientX - gest.sx, dy = e.clientY - gest.sy;
+    if (!gest.moved && Math.hypot(dx, dy) < 6) return;
+    gest.moved = true;
+    view.px = gest.px + dx; view.py = gest.py + dy;
+    applyView();
+  } else if (gest.mode === 'pinch' && gest.pts.size === 2) {
+    const [a, b] = [...gest.pts.values()];
+    const d = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+    const c = areaCentre(area);
+    const qx = (a.x + b.x) / 2 - c.x, qy = (a.y + b.y) / 2 - c.y;
+    const k2 = clamp(gest.k * (d / gest.dist), geo.kFit, 1);
+    const f = k2 / view.k;
+    view.px = qx - (qx - view.px) * f;
+    view.py = qy - (qy - view.py) * f;
+    view.k = k2;
+    applyView();
+  }
+});
+
+function endGesture(e) {
+  if (!gest.pts.has(e.pointerId)) return;
+  gest.pts.delete(e.pointerId);
+  if (gest.moved) { swallowClick = true; setTimeout(() => swallowClick = false, 0); }
+  if (!gest.pts.size) { gest.mode = null; document.querySelector('.board')?.classList.remove('nudge'); }
+}
+$app.addEventListener('pointerup', endGesture);
+$app.addEventListener('pointercancel', endGesture);
+
+$app.addEventListener('wheel', e => {
+  const area = e.target.closest('.board-area');
+  if (!area || !zoomable()) return;
+  e.preventDefault();
+  const c = areaCentre(area);
+  zoomTo(view.k * Math.exp(-e.deltaY * 0.0016), e.clientX - c.x, e.clientY - c.y);
+}, { passive: false });
+
+/* -------------------------------- settings -------------------------------- */
+function viewSettings() {
+  return `
+  <div class="screen scroll">
+    <div class="subhead">
+      <button class="iconbtn" data-act="back" aria-label="${t('a_back')}">${IC.chevL()}</button>
+      <div class="title">${t('settings')}</div>
+    </div>
+
+    <div class="card settings-card">
+      ${settingRow(t('language'), langField())}
+    </div>
+
+    <div class="card settings-card">
+      ${settingRow(t('firstMarkOffCentre'), toggle('toggleCentre', S.blockCentre, t('firstMarkOffCentre')))}
+      ${settingRow(t('undoButton'), toggle('toggleUndo', S.undoOn, t('undoButton')))}
+    </div>
+
+    <div class="card settings-card">
+      ${settingRow(t('unlimitedBoard'), toggle('toggleUnlimited', S.unlimited, t('unlimitedBoard')))}
+      ${settingRow(t('maxWidth'), numField('maxW', t('cellsUnit'), S.unlimited))}
+      ${settingRow(t('maxHeight'), numField('maxH', t('cellsUnit'), S.unlimited))}
+    </div>
+
+    <div class="list">
+      <button data-act="go" data-to="tutorial">${IC.bulb(22)}<span>${t('tutorial')}</span><span class="sp"></span>${IC.chevR(20)}</button>
+      <button data-act="go" data-to="imprint">${IC.book(22)}<span>${t('imprint')}</span><span class="sp"></span>${IC.chevR(20)}</button>
+    </div>
+  </div>`;
+}
+
+/* ----------------------- little boards for the tutorial -------------------- */
+function miniBoard(spec, ghost, cell = 32) {
+  const rows = spec.length, cols = spec[0].length;
+  const lw = Math.max(2, Math.round(cell * .095)), rad = Math.round(cell * .24);
+  const W = cols * cell, H = rows * cell;
+  let inner = '';
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    const ch = spec[r][c];
+    if (ch === 'X' || ch === 'O')
+      inner += `<div class="cell" style="left:${c * cell}px;top:${r * cell}px;width:${cell}px;height:${cell}px">${mark(ch, cell * .775)}</div>`;
+  }
+  inner += gridLines(rows, cols, cell, lw, '#000');
+  if (ghost === 'row') inner += strip('top', rows, cols, cell, lw, rad) + strip('bottom', rows, cols, cell, lw, rad);
+  if (ghost === 'col') inner += strip('left', rows, cols, cell, lw, rad) + strip('right', rows, cols, cell, lw, rad);
+  const mv = ghost === 'row' ? cell : 0, mh = ghost === 'col' ? cell : 0;
+  return `<div class="board static" style="width:${W}px;height:${H}px;margin:${mv}px ${mh}px">${inner}</div>`;
+}
+
+/* -------------------------------- tutorial -------------------------------- */
+function viewTutorial() {
+  const START = ['...', '.O.', '...'];
+  const COL   = ['O.X', 'O.X', '.OX'];
+  const ROW   = ['X..', 'OOO', '..X'];
+  const W = winLen();
+  const WIN = {
+    4: ['O.O.', 'XXXX', 'OO..'],
+    5: ['O.O.O', 'XXXXX', 'OO...'],
+    6: ['O.O.O.', 'XXXXXX', 'OOO...'],
+  }[W];
+  const M = MODES[S.mode];
+  const modeRow = k => `
+    <div class="keyrow">
+      <div class="k"><b>${modeLabel(k)}</b></div>
+      <div class="t">${t('t_modeWin', MODES[k].win)}${k === S.mode ? ` <b>· ${t('t_selected')}</b>` : ''}</div>
+    </div>`;
+  const legend = (icons, text) => `<div class="keyrow"><div class="k">${icons}</div><div class="t">${text}</div></div>`;
+  const bi = (ic, size) => `<span class="tint" style="color:${BLUE}">${ic(size)}</span><span class="tint" style="color:${RED}">${ic(size)}</span>`;
+
+  return `
+  <div class="screen scroll tut">
+    <div class="subhead">
+      <button class="iconbtn" data-act="back" aria-label="${t('a_back')}">${IC.chevL()}</button>
+      <div class="title">${t('tutorial')}</div>
+    </div>
+
+    <h3>${t('t_shortH')}</h3>
+    <div class="card">${t('t_shortB', W)}</div>
+
+    <h3>${t('t_modesH')}</h3>
+    <div class="card">
+      ${t('t_modesB')}
+      ${MODE_KEYS.map(modeRow).join('')}
+      <br>${t('t_modesFoot')}
+    </div>
+
+    <h3>${t('t_startH')}</h3>
+    <div class="card">${t('t_startB')}<div class="mini">${miniBoard(START)}</div></div>
+
+    <h3>${t('t_heightH')}</h3>
+    <div class="card">${t('t_heightB1')}<div class="mini">${miniBoard(COL)}</div></div>
+    <div class="card">${t('t_heightB2')}<div class="mini">${miniBoard(COL, 'row')}</div></div>
+
+    <h3>${t('t_widthH')}</h3>
+    <div class="card">${t('t_widthB1')}<div class="mini">${miniBoard(ROW)}</div></div>
+    <div class="card">${t('t_widthB2')}<div class="mini">${miniBoard(ROW, 'col')}</div></div>
+
+    <h3>${t('t_bothH')}</h3>
+    <div class="card">${t('t_bothB')}</div>
+
+    <h3>${t('t_growH')}</h3>
+    <div class="card">${t('t_growB', modeLabel(S.mode), M.w, M.h)}</div>
+
+    <h3>${t('t_zoomH')}</h3>
+    <div class="card">${t('t_zoomB')}</div>
+
+    <h3>${t('t_winH')}</h3>
+    <div class="card">${t('t_winB', W)}<div class="mini">${miniBoard(WIN, null, W > 5 ? 27 : 30)}</div></div>
+
+    <h3>${t('t_topH')}</h3>
+    <div class="card">
+      ${legend(IC.home(24), t('t_home'))}
+      ${legend(IC.sliders(24), t('t_settingsRow'))}
+      <div class="keyrow">
+        <div class="k stackk"><span class="clock red">10:00</span><span class="clock red active">10:00</span></div>
+        <div class="t">${t('t_clock')}</div>
+      </div>
+    </div>
+
+    <h3>${t('t_bottomH')}</h3>
+    <div class="card last">
+      ${legend(`<span class="iconbtn mini-btn">${IC.undo(20)}</span>`, t('t_undo'))}
+      ${legend('', t('t_right'))}
+      ${legend(smallO(24) + smallX(24), t('t_place'))}
+      ${legend(`<span class="tint" style="color:${BLUE}">${IC.extRow(24)}</span><span class="tint" style="color:${RED}">${IC.extCol(24)}</span>`, t('t_extend'))}
+      ${legend(bi(IC.extBoth, 26), t('t_extendBoth'))}
+      ${legend(bi(IC.party, 24), t('t_winner'))}
+    </div>
+  </div>`;
+}
+
+/* -------------------------------- imprint --------------------------------- */
+function viewImprint() {
+  const sec = (h, b) => `<h4>${h}</h4><p>${b}</p>`;
+  return `
+  <div class="screen scroll">
+    <div class="subhead">
+      <button class="iconbtn" data-act="back" aria-label="${t('a_back')}">${IC.chevL()}</button>
+      <div class="title">${t('imprint')}</div>
+    </div>
+    <div class="imprint">
+      <p><b>${t('i_provider')}</b><br>Musterfirma<br>Musterstraße 1<br>12345 Musterstadt</p>
+      ${sec(t('i_repBy'), 'Max Mustermann')}
+      ${sec(t('i_contact'), '+49 (0) 123 44 55 66<br>info@musterfirma.de')}
+      ${sec(t('i_vat'), t('i_vatB'))}
+      ${sec(t('i_liability'), t('i_liabilityB'))}
+      ${sec(t('i_links'), t('i_linksB'))}
+      ${sec(t('i_copyright'), t('i_copyrightB'))}
+      ${sec(t('i_privacy'), t('i_privacyB'))}
+      <p class="ph">${t('i_placeholder')}</p>
+      <p class="build">ExtendOX · Build ${BUILD}</p>
+    </div>
+  </div>`;
+}
+
+/* ================================== events ================================= */
+$app.addEventListener('click', e => {
+  if (swallowClick) return;
+
+  // a tap anywhere outside an open dropdown just closes it
+  if ((S.modeOpen || S.langOpen) && !e.target.closest('.selwrap')) {
+    S.modeOpen = S.langOpen = false; return render();
+  }
+
+  const el = e.target.closest('[data-act]');
+  if (!el) return;
+
+  switch (el.dataset.act) {
+    case 'modeMenu':    S.modeOpen = !S.modeOpen; S.langOpen = false; break;
+    case 'langMenu':    S.langOpen = !S.langOpen; S.modeOpen = false; break;
+    case 'pickMode':    applyMode(el.dataset.key); break;
+    case 'pickLang':    applyLang(el.dataset.key); break;
+    case 'go':          S.stack = el.dataset.to === 'home' ? [] : [...S.stack, S.screen];
+                        S.screen = el.dataset.to; S.dialog = null; S.modeOpen = S.langOpen = false; break;
+    case 'back':        S.screen = S.stack.pop() || 'home'; break;
+    case 'play':        S.game = newGame(); S.stack = []; S.screen = 'game'; S.modeOpen = false;
+                        S.dialog = null; S.lastPlaced = null; resetView(); clockRef = Date.now(); break;
+
+    case 'toggleTime':      S.timeLimit   = !S.timeLimit;   store.save(); break;
+    case 'toggleCentre':    S.blockCentre = !S.blockCentre; store.save(); break;
+    case 'toggleUndo':      S.undoOn      = !S.undoOn;      store.save(); break;
+    case 'toggleUnlimited': S.unlimited   = !S.unlimited;   store.save(); break;
+
+    case 'place':       return place(+el.dataset.r, +el.dataset.c);
+    case 'extend':      return extend(el.dataset.side);
+    case 'zoom':        return zoomTo(view.k * (+el.dataset.dir > 0 ? 1.6 : 1 / 1.6));
+    case 'undo':        if (!S.undoOn) { S.dialog = 'undoOff'; break; } return undo();
+    case 'askEnd':      S.dialog = 'end'; break;
+    case 'closeDialog': S.dialog = null; clockRef = Date.now(); break;
+    case 'endGame':     S.dialog = null; S.game = null; S.stack = []; S.screen = 'home'; break;
+    default: return;
+  }
+  render();
+});
+
+/* editable number fields ---------------------------------------------------- */
+$app.addEventListener('focusin', e => { if (e.target.matches('[data-num]')) e.target.select(); });
+$app.addEventListener('input', e => {
+  if (!e.target.matches('[data-num]')) return;
+  e.target.value = e.target.value.replace(/\D/g, '').slice(0, 2);
+});
+/* picking a mode also resets the board-size limits and the clock to its defaults */
+function applyMode(key) {
+  const m = MODES[key] ? key : 'fast';
+  S.mode = m;
+  S.maxW = MODES[m].w;
+  S.maxH = MODES[m].h;
+  S.minutes = MODES[m].min;
+  S.modeOpen = false;
+  store.save();
+}
+
+/* language only changes wording — never any rule, size or layout value */
+function applyLang(key) {
+  S.lang = LANGS[key] ? key : 'en';
+  S.langOpen = false;
+  document.documentElement.lang = S.lang;
+  store.save();
+}
+
+$app.addEventListener('change', e => {
+  const el = e.target.closest('[data-num]');
+  if (!el) return;
+  const spec = NUM[el.dataset.num];
+  const raw = parseInt(el.value, 10);
+  S[spec.key] = clamp(Number.isFinite(raw) ? raw : spec.def, spec.min, spec.max);
+  store.save();
+  render();
+});
+$app.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.matches('[data-num]')) { e.preventDefault(); e.target.blur(); }
+  if (e.key === 'Escape' && (S.modeOpen || S.langOpen)) { S.modeOpen = S.langOpen = false; render(); }
+});
+
+document.documentElement.lang = S.lang;
+render();
+
+  </script>
 </body>
 </html>
