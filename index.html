@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<!-- ExtendOX build v4 -->
-<meta name="version" content="4" />
+<!-- ExtendOX build v4.2 -->
+<meta name="version" content="4.2" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#ffffff" />
 <title>ExtendOX</title>
@@ -93,7 +93,9 @@ svg{display:block}
   display:flex;flex-direction:column;
   padding:max(18px,env(safe-area-inset-top)) var(--pad) max(20px,env(safe-area-inset-bottom));
 }
-.screen.scroll{overflow-y:auto;overscroll-behavior:contain}
+/* scrollbar-gutter keeps the centred column in the same place whether or not a
+   screen happens to scroll — otherwise the back button shifts by half a bar */
+.screen.scroll{overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
 .sp{flex:0 0 auto}
 
 /* -------------------------------- pieces --------------------------------- */
@@ -136,7 +138,7 @@ svg{display:block}
 .gap-brand{flex:0 0 auto;height:clamp(30px,15vh,122px)}
 .gap-play {flex:0 0 auto;height:clamp(18px,6vh,50px)}
 .gap-rest {flex:1 1 auto;min-height:10px}
-.screen-home{overflow-y:auto;overscroll-behavior:contain}
+.screen-home{overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
 
 /* shorter screens: tighten the rhythm so it usually still fits without scrolling */
 @media (max-height:700px){
@@ -358,8 +360,14 @@ svg{display:block}
 .imprint{background:var(--surface-soft);border-radius:var(--r);
   padding:16px 16px 24px;font-size:var(--fs-small);line-height:1.7;flex:0 0 auto}
 .imprint h4{font-size:var(--fs-small);margin:16px 0 4px}
+.imprint h4:first-child{margin-top:0}
 .imprint p{margin:0 0 8px}
-.imprint .ph{margin-top:18px;opacity:.55}
+
+/* small grey credit line at the foot of the home screen */
+.credits{
+  flex:0 0 auto;margin:14px 0 0;text-align:center;
+  font-size:11px;line-height:1.4;color:rgba(0,0,0,.38);
+}
 /* which build this device is actually running — handy after an update */
 .imprint .build{margin-top:14px;opacity:.4;font-variant-numeric:tabular-nums}
 
@@ -369,7 +377,9 @@ svg{display:block}
    not tall, so it keeps the compact layout below.
    ============================================================ */
 @media (min-width:900px) and (min-height:560px){
-  :root{--pad:clamp(30px,5vw,84px)}
+  /* --col: one width for every screen except the playing view
+     --bar: the wider span the game screen's bars and board share */
+  :root{--pad:clamp(30px,5vw,84px);--col:660px;--bar:1180px}
 
   body{background:#fff;align-items:stretch}
   #app{width:100vw;max-width:none;max-height:none;border-radius:0;box-shadow:none}
@@ -380,12 +390,12 @@ svg{display:block}
   .screen-game > .topbar,
   .screen-game > .bottombar,
   .screen-game > .board-area,
-  .screen-game > .announce{width:min(100%,1180px);margin-left:auto;margin-right:auto}
+  .screen-game > .announce{width:min(100%,var(--bar));margin-left:auto;margin-right:auto}
   /* vertical room is the scarce one on a laptop, so the safe gap above and below
      the board is smaller than the generous margin at the sides */
   .board-area{margin-top:clamp(22px,3.5vh,46px);margin-bottom:clamp(22px,3.5vh,46px)}
   .notice{left:50%;right:auto;transform:translateX(-50%);
-          width:min(calc(100% - 2*var(--pad)),1180px)}
+          width:min(calc(100% - 2*var(--pad)),var(--bar))}
 
   .topbar{flex:0 0 62px;height:62px;padding:0 22px;border-radius:20px}
   .topbar .iconbtn.flat{width:44px;height:44px;border-radius:12px}
@@ -395,11 +405,25 @@ svg{display:block}
   .zoombar{height:52px}
   .zoombar button{width:54px;height:52px}
 
-  /* menus and cards keep a readable column rather than stretching */
+  /* every screen except the playing view shares one column width, and each
+     block fills it — `width:100%` matters, because auto margins alone stop a
+     flex item from stretching and short cards would end up narrower */
   .screen-home > *,
-  .screen.scroll > *{max-width:560px;margin-left:auto;margin-right:auto}
-  .screen.scroll.tut > *{max-width:660px}
-  .subhead .title{margin-right:82px}
+  .screen.scroll > *{width:100%;max-width:var(--col);margin-left:auto;margin-right:auto}
+
+  /* cards use the full column, labels left, controls right, clear of the edge */
+  .settings-card{padding:22px 30px;gap:18px}
+  .imprint{padding:26px 30px 30px}
+  .tut .card{padding:20px 26px}
+  .wip{width:100%;max-width:var(--col)}
+
+  /* back button at the left edge of the column, title centred in the column —
+     the right margin mirrors the button so the text lands in the middle */
+  .subhead{margin-bottom:28px}
+
+  /* the Tutorial / Imprint list spans the column, but its text and chevron stay
+     roughly where they were instead of being flung to the corners */
+  .list button{padding-left:max(18px,calc(50% - 200px));padding-right:max(18px,calc(50% - 200px))}
 
   .announce{padding:22px 0 6px;gap:20px}
   .dialog{width:min(300px,calc(100% - 44px));padding:24px 26px 20px}
@@ -446,7 +470,7 @@ svg{display:block}
 </head>
 <body>
   <div id="app"></div>
-  <script>window.ExtendOX = { build: '4' };</script>
+  <script>window.ExtendOX = { build: '4.2' };</script>
   <script>
 /* =============================================================================
    ExtendOX — translations.
@@ -477,7 +501,7 @@ const T = {
 /* ---------------------------------------------------------------- English -- */
 en: {
   playNow: 'Play Now', timeLimit: 'Time Limit', minutesPerPlayer: 'Minutes per player',
-  playBot: 'Play a bot', yourPiece: 'Your piece', pieceToStart: 'Piece to start',
+  playBot: 'Play a bot', yourPiece: 'Your piece', playerToStart: 'Player to start',
   botWins: 'Bot wins this time!',
   t_botH: 'Playing a bot', t_botB: 'Tap <b>Play a bot</b> on the home screen, choose your mark and who opens, then play. The bot builds its own lines, blocks yours the moment you are one mark from winning, and pauses before it extends the board so you can see which side it picked. There is no clock in a bot game.',
   minUnit: 'min', mode: 'Mode',
@@ -489,7 +513,7 @@ en: {
   undoOffMsg: 'The undo button is switched off. You can switch it back on in the settings.',
   goSettings: 'Settings', close: 'Close',
   centreNotice: 'The very first mark cannot be placed in the middle of the grid.',
-  limitNotice: (w, h, what) => `Maximum board size (${w} × ${h} cells) reached – no further ${what} can be added.`,
+  limitNotice: (w, h, what) => `Maximum board size (${w} × ${h} cells) reached, no further ${what} can be added.`,
   limRow: 'row', limCol: 'column', limBoth: 'row or column',
 
   settings: 'Settings', language: 'Language',
@@ -505,7 +529,7 @@ en: {
   t_selected: 'selected',
   t_modesFoot: 'Choosing a mode also sets the minutes per player and the maximum board size to values that suit it; both can still be changed afterwards.',
   t_startH: 'Start',
-  t_startB: 'The game kicks off with Player O placing their mark on the 3x3 grid. To ensure fairness, the first mark cannot be placed in the middle of the grid – a rule you can switch off in the settings.',
+  t_startB: 'The game kicks off with Player O placing their mark on the 3x3 grid. To ensure fairness, the first mark cannot be placed in the middle of the grid. That rule can be switched off in the settings.',
   t_startWho: 'Which mark opens can be chosen on the home screen.',
   t_heightH: 'Extending the height',
   t_heightB1: 'Player X fills an entire column, triggering a grid height extension.',
@@ -514,16 +538,16 @@ en: {
   t_widthB1: 'Player O fills an entire row, triggering a grid width extension.',
   t_widthB2: 'With the row complete, Player O gains the strategic advantage of choosing whether to extend the grid to the left or right.',
   t_bothH: 'Filling both at once',
-  t_bothB: 'A single mark can complete a column <b>and</b> a row. The player then owes the board both a new row <b>and</b> a new column – all four grey bars appear and both have to be placed before play continues.',
+  t_bothB: 'A single mark can complete a column <b>and</b> a row. The player then owes the board both a new row <b>and</b> a new column. All four grey bars appear and both have to be placed before play continues.',
   t_growH: 'How far it grows',
-  t_growB: (label, w, h) => `In <b>${label}</b> mode the board stops at ${w} columns and ${h} rows. Once that edge is reached, completing a line no longer opens the grey bars – a short note appears at the bottom of the screen instead and play carries straight on.<br><br>Both limits can be changed in the settings, or lifted completely with <b>Unlimited board</b>.`,
+  t_growB: (label, w, h) => `In <b>${label}</b> mode the board stops at ${w} columns and ${h} rows. Once that edge is reached, completing a line no longer opens the grey bars. A short note appears at the bottom of the screen instead and play carries straight on.<br><br>Both limits can be changed in the settings, or lifted completely with <b>Unlimited board</b>.`,
   t_zoomH: 'Zoom & drag',
-  t_zoomB: 'As soon as the board no longer fits at full cell size, the cells shrink so that everything stays visible. Use the <b>–</b> and <b>+</b> buttons in the bottom bar, a pinch, or the mouse wheel to zoom in, and drag the board to move around. Zooming in stops at the original cell size, zooming out at the full board. After every mark the view returns to the full board automatically.',
+  t_zoomB: 'As soon as the board no longer fits at full cell size, the cells shrink so that everything stays visible. Use the zoom buttons in the bottom bar, a pinch, or the mouse wheel to zoom in, and drag the board to move around. Zooming in stops at the original cell size, zooming out at the full board. After every mark the view returns to the full board automatically.',
   t_winH: 'Winning',
-  t_winB: n => `In a nail-biting twist, Player X skillfully achieves the ultimate objective – ${n} marks in a row, securing a triumphant victory. A row, a column and both diagonals all count.`,
+  t_winB: n => `In a nail-biting twist, Player X skillfully achieves the ultimate objective of ${n} marks in a row, securing a triumphant victory. A row, a column and both diagonals all count.`,
   t_topH: 'Top Bar',
   t_home: 'Home screen',
-  t_settingsRow: 'Settings – including this tutorial',
+  t_settingsRow: 'Settings, including this tutorial',
   t_clock: 'Enabling the "Time Limit" feature imposes time restrictions on each player. Beware, if the timer runs out, you\'ll face defeat! Keep an eye on the bright clock, as it indicates whose turn it is.',
   t_bottomH: 'Bottom Bar',
   t_undo: 'Undo your last turn with the left button. It can be switched off in the settings.',
@@ -533,17 +557,12 @@ en: {
   t_extendBoth: 'Extend both a row and a column',
   t_winner: 'Winner declaration',
 
-  i_provider: 'Provider', i_repBy: 'Represented by', i_contact: 'Contact',
-  i_vat: 'VAT ID', i_vatB: 'VAT identification number: DE 123 456 789',
-  i_liability: 'Liability for content',
-  i_liabilityB: 'As a service provider we are responsible for our own content on these pages under the general laws. We are not obliged to monitor transmitted or stored third-party information.',
-  i_links: 'Liability for links',
-  i_linksB: 'Our offer contains links to external websites over whose content we have no influence. The respective provider or operator of those pages is always responsible for their content.',
+  i_madeByH: 'Created by',
+  i_madeByB: 'ExtendOX was created by Kirill Ivanov. This is a first initial version; the intention is to add further features, online play among them, and to publish the game on the app store. Anyone interested in discussing the next steps, or in helping to make them happen, is very welcome to get in touch.',
+  i_contact: 'Contact',
   i_copyright: 'Copyright',
-  i_copyrightB: 'The content created by the site operators on these pages is subject to copyright. Any duplication, editing, distribution or use beyond the limits of copyright law requires written consent.',
-  i_privacy: 'Data protection',
-  i_privacyB: 'ExtendOX does not collect, store or transmit any personal data. The settings chosen in the game are stored locally on this device only.',
-  i_placeholder: 'Placeholder text – please replace it with the real provider details before publishing.',
+  i_copyB: '© 2026 Kirill Ivanov. All rights reserved. This game, together with its design, artwork and source code, may not be copied, redistributed, sold, sub-licensed or otherwise exploited for commercial purposes, in whole or in part, without the prior written permission of the author.',
+  credits: 'Created by Kirill Ivanov · see the imprint for details',
 
   a_back: 'Back', a_undo: 'Undo', a_zoomIn: 'Zoom in', a_zoomOut: 'Zoom out',
 },
@@ -551,7 +570,7 @@ en: {
 /* ---------------------------------------------------------------- Español -- */
 es: {
   playNow: 'Jugar ahora', timeLimit: 'Límite de tiempo', minutesPerPlayer: 'Minutos por jugador',
-  playBot: 'Jugar contra el bot', yourPiece: 'Tu ficha', pieceToStart: 'Quién empieza',
+  playBot: 'Jugar contra el bot', yourPiece: 'Tu ficha', playerToStart: 'Quién empieza',
   botWins: '¡Esta vez gana el bot!',
   t_botH: 'Jugar contra el bot', t_botB: 'Pulsa <b>Jugar contra el bot</b> en la pantalla de inicio, elige tu ficha y quién empieza, y juega. El bot construye sus propias líneas, bloquea la tuya en cuanto te falta una sola ficha para ganar, y espera un momento antes de ampliar el tablero para que veas qué lado ha elegido. Contra el bot no hay reloj.',
   minUnit: 'min', mode: 'Modo',
@@ -592,7 +611,7 @@ es: {
   t_growH: 'Hasta dónde crece',
   t_growB: (label, w, h) => `En el modo <b>${label}</b> el tablero se detiene en ${w} columnas y ${h} filas. Al llegar a ese límite, completar una línea ya no abre las barras grises: en su lugar aparece un breve aviso en la parte inferior de la pantalla y el juego continúa.<br><br>Ambos límites se pueden cambiar en los ajustes o quitar por completo con <b>Tablero ilimitado</b>.`,
   t_zoomH: 'Zoom y arrastre',
-  t_zoomB: 'En cuanto el tablero ya no cabe con el tamaño completo de casilla, las casillas se reducen para que todo siga visible. Usa los botones <b>–</b> y <b>+</b> de la barra inferior, un pellizco o la rueda del ratón para acercar, y arrastra el tablero para moverte. El zoom se detiene en el tamaño original de casilla al acercar y en el tablero completo al alejar. Después de cada marca, la vista vuelve automáticamente al tablero completo.',
+  t_zoomB: 'En cuanto el tablero ya no cabe con el tamaño completo de casilla, las casillas se reducen para que todo siga visible. Usa los botones de zoom de la barra inferior, un pellizco o la rueda del ratón para acercar, y arrastra el tablero para moverte. El zoom se detiene en el tamaño original de casilla al acercar y en el tablero completo al alejar. Después de cada marca, la vista vuelve automáticamente al tablero completo.',
   t_winH: 'Ganar',
   t_winB: n => `En un giro emocionante, el jugador X logra el objetivo final: ${n} marcas en línea y una victoria triunfal. Cuentan una fila, una columna y ambas diagonales.`,
   t_topH: 'Barra superior',
@@ -607,17 +626,12 @@ es: {
   t_extendBoth: 'Ampliar una fila y una columna',
   t_winner: 'Anuncio del ganador',
 
-  i_provider: 'Proveedor', i_repBy: 'Representado por', i_contact: 'Contacto',
-  i_vat: 'NIF-IVA', i_vatB: 'Número de identificación fiscal: DE 123 456 789',
-  i_liability: 'Responsabilidad por el contenido',
-  i_liabilityB: 'Como proveedor de servicios somos responsables de nuestro propio contenido en estas páginas conforme a la legislación general. No estamos obligados a supervisar la información de terceros transmitida o almacenada.',
-  i_links: 'Responsabilidad por los enlaces',
-  i_linksB: 'Nuestra oferta contiene enlaces a sitios web externos sobre cuyo contenido no tenemos influencia. El proveedor u operador de esas páginas es siempre el responsable de su contenido.',
+  i_madeByH: 'Creado por',
+  i_madeByB: 'ExtendOX ha sido creado por Kirill Ivanov. Esta es una primera versión inicial; la intención es añadir más funciones, entre ellas el juego en línea, y publicar el juego en la app store. Cualquier persona interesada en hablar sobre los próximos pasos, o en ayudar a hacerlos realidad, puede ponerse en contacto.',
+  i_contact: 'Contacto',
   i_copyright: 'Derechos de autor',
-  i_copyrightB: 'El contenido creado por los operadores del sitio en estas páginas está protegido por derechos de autor. Toda reproducción, edición, distribución o uso más allá de los límites legales requiere consentimiento por escrito.',
-  i_privacy: 'Protección de datos',
-  i_privacyB: 'ExtendOX no recoge, almacena ni transmite datos personales. Los ajustes elegidos en el juego se guardan únicamente de forma local en este dispositivo.',
-  i_placeholder: 'Texto de ejemplo: sustitúyelo por los datos reales del proveedor antes de publicar.',
+  i_copyB: '© 2026 Kirill Ivanov. Todos los derechos reservados. Este juego, junto con su diseño, sus ilustraciones y su código fuente, no puede copiarse, redistribuirse, venderse, sublicenciarse ni explotarse con fines comerciales, ni en su totalidad ni en parte, sin la autorización previa por escrito del autor.',
+  credits: 'Creado por Kirill Ivanov · consulta el aviso legal',
 
   a_back: 'Atrás', a_undo: 'Deshacer', a_zoomIn: 'Acercar', a_zoomOut: 'Alejar',
 },
@@ -625,7 +639,7 @@ es: {
 /* --------------------------------------------------------------- Français -- */
 fr: {
   playNow: 'Jouer', timeLimit: 'Limite de temps', minutesPerPlayer: 'Minutes par joueur',
-  playBot: 'Jouer contre le bot', yourPiece: 'Votre pièce', pieceToStart: 'Qui commence',
+  playBot: 'Jouer contre le bot', yourPiece: 'Votre pièce', playerToStart: 'Qui commence',
   botWins: 'Le bot gagne cette fois !',
   t_botH: 'Jouer contre le bot',
   t_botB: "Touchez <b>Jouer contre le bot</b> sur l'écran d'accueil, choisissez votre pièce et qui commence, puis jouez. Le bot construit ses propres lignes, bloque la vôtre dès qu'il vous manque une seule pièce pour gagner, et marque un temps d'arrêt avant d'agrandir la grille pour que vous voyiez le côté choisi. Il n'y a pas d'horloge contre le bot.",
@@ -654,7 +668,7 @@ fr: {
   t_selected: 'sélectionné',
   t_modesFoot: 'Choisir un mode règle aussi les minutes par joueur et la taille maximale de la grille sur des valeurs adaptées ; les deux restent modifiables ensuite.',
   t_startH: 'Début',
-  t_startB: 'La partie commence lorsque le joueur O place sa marque sur la grille 3x3. Par souci d\'équité, la toute première marque ne peut pas être placée au centre – une règle désactivable dans les réglages.',
+  t_startB: 'La partie commence lorsque le joueur O place sa marque sur la grille 3x3. Par souci d\'équité, la toute première marque ne peut pas être placée au centre. Cette règle peut être désactivée dans les réglages.',
   t_startWho: "La pièce qui commence se choisit sur l'écran d'accueil.",
   t_heightH: 'Agrandir la hauteur',
   t_heightB1: 'Le joueur X remplit une colonne entière, ce qui déclenche un agrandissement en hauteur.',
@@ -667,7 +681,7 @@ fr: {
   t_growH: 'Jusqu\'où elle grandit',
   t_growB: (label, w, h) => `En mode <b>${label}</b>, la grille s'arrête à ${w} colonnes et ${h} lignes. Une fois cette limite atteinte, compléter une ligne n'ouvre plus les barres grises : une courte note apparaît en bas de l'écran et le jeu se poursuit directement.<br><br>Les deux limites se modifient dans les réglages, ou se suppriment complètement avec <b>Grille illimitée</b>.`,
   t_zoomH: 'Zoom et déplacement',
-  t_zoomB: 'Dès que la grille ne tient plus à la taille de case complète, les cases rétrécissent pour que tout reste visible. Utilisez les boutons <b>–</b> et <b>+</b> de la barre inférieure, un pincement ou la molette pour zoomer, et faites glisser la grille pour vous déplacer. Le zoom avant s\'arrête à la taille de case d\'origine, le zoom arrière à la grille entière. Après chaque marque, la vue revient automatiquement à la grille entière.',
+  t_zoomB: 'Dès que la grille ne tient plus à la taille de case complète, les cases rétrécissent pour que tout reste visible. Utilisez les boutons de zoom de la barre inférieure, un pincement ou la molette pour zoomer, et faites glisser la grille pour vous déplacer. Le zoom avant s\'arrête à la taille de case d\'origine, le zoom arrière à la grille entière. Après chaque marque, la vue revient automatiquement à la grille entière.',
   t_winH: 'Gagner',
   t_winB: n => `Dans un dénouement palpitant, le joueur X atteint l'objectif ultime : ${n} marques à la suite et une victoire éclatante. Une ligne, une colonne et les deux diagonales comptent.`,
   t_topH: 'Barre supérieure',
@@ -682,17 +696,12 @@ fr: {
   t_extendBoth: 'Agrandir d\'une ligne et d\'une colonne',
   t_winner: 'Annonce du vainqueur',
 
-  i_provider: 'Éditeur', i_repBy: 'Représenté par', i_contact: 'Contact',
-  i_vat: 'N° de TVA', i_vatB: 'Numéro d\'identification à la TVA : DE 123 456 789',
-  i_liability: 'Responsabilité du contenu',
-  i_liabilityB: 'En tant que prestataire de services, nous sommes responsables de nos propres contenus sur ces pages conformément au droit commun. Nous ne sommes pas tenus de surveiller les informations de tiers transmises ou stockées.',
-  i_links: 'Responsabilité des liens',
-  i_linksB: 'Notre offre contient des liens vers des sites externes dont nous ne maîtrisons pas le contenu. Le fournisseur ou l\'exploitant de ces pages en est toujours responsable.',
-  i_copyright: 'Droit d\'auteur',
-  i_copyrightB: 'Les contenus créés par les exploitants du site sur ces pages sont protégés par le droit d\'auteur. Toute reproduction, modification, diffusion ou utilisation au-delà des limites légales nécessite un accord écrit.',
-  i_privacy: 'Protection des données',
-  i_privacyB: 'ExtendOX ne collecte, ne stocke ni ne transmet aucune donnée personnelle. Les réglages choisis dans le jeu sont enregistrés uniquement en local sur cet appareil.',
-  i_placeholder: 'Texte d\'exemple – à remplacer par les véritables mentions de l\'éditeur avant publication.',
+  i_madeByH: 'Créé par',
+  i_madeByB: "ExtendOX a été créé par Kirill Ivanov. Il s'agit d'une toute première version ; l'intention est d'ajouter d'autres fonctionnalités, dont le jeu en ligne, et de publier le jeu sur l'app store. Toute personne souhaitant discuter des prochaines étapes, ou aider à les réaliser, est la bienvenue pour prendre contact.",
+  i_contact: 'Contact',
+  i_copyright: "Droit d'auteur",
+  i_copyB: "© 2026 Kirill Ivanov. Tous droits réservés. Ce jeu, ainsi que son design, ses illustrations et son code source, ne peut être copié, redistribué, vendu, sous-licencié ni exploité à des fins commerciales, en tout ou en partie, sans l'autorisation écrite préalable de l'auteur.",
+  credits: 'Créé par Kirill Ivanov · voir les mentions légales',
 
   a_back: 'Retour', a_undo: 'Annuler', a_zoomIn: 'Zoom avant', a_zoomOut: 'Zoom arrière',
 },
@@ -700,7 +709,7 @@ fr: {
 /* ---------------------------------------------------------------- Deutsch -- */
 de: {
   playNow: 'Jetzt spielen', timeLimit: 'Zeitlimit', minutesPerPlayer: 'Minuten pro Spieler',
-  playBot: 'Gegen Bot spielen', yourPiece: 'Dein Zeichen', pieceToStart: 'Erstes Zeichen',
+  playBot: 'Gegen Bot spielen', yourPiece: 'Dein Zeichen', playerToStart: 'Erster Spieler',
   botWins: 'Diesmal gewinnt der Bot!',
   t_botH: 'Gegen den Bot spielen', t_botB: 'Tippe auf dem Startbildschirm auf <b>Gegen Bot spielen</b>, wähle dein Zeichen und wer anfängt, und los. Der Bot baut eigene Reihen, blockiert deine, sobald dir nur noch ein Zeichen zum Sieg fehlt, und wartet kurz, bevor er das Feld erweitert, damit du siehst, welche Seite er gewählt hat. Im Spiel gegen den Bot gibt es keine Uhr.',
   minUnit: 'Min.', mode: 'Modus',
@@ -712,7 +721,7 @@ de: {
   undoOffMsg: 'Die Rückgängig-Taste ist ausgeschaltet. Du kannst sie in den Einstellungen wieder aktivieren.',
   goSettings: 'Einstellungen', close: 'Schließen',
   centreNotice: 'Der allererste Zug darf nicht in die Mitte des Felds gesetzt werden.',
-  limitNotice: (w, h, what) => `Maximale Feldgröße (${w} × ${h} Felder) erreicht – es kann keine weitere ${what} hinzugefügt werden.`,
+  limitNotice: (w, h, what) => `Maximale Feldgröße (${w} × ${h} Felder) erreicht, es kann keine weitere ${what} hinzugefügt werden.`,
   limRow: 'Zeile', limCol: 'Spalte', limBoth: 'Zeile oder Spalte',
 
   settings: 'Einstellungen', language: 'Sprache',
@@ -728,7 +737,7 @@ de: {
   t_selected: 'ausgewählt',
   t_modesFoot: 'Ein Modus setzt auch die Minuten pro Spieler und die maximale Feldgröße auf passende Werte; beides lässt sich danach weiter ändern.',
   t_startH: 'Start',
-  t_startB: 'Das Spiel beginnt damit, dass Spieler O sein Zeichen auf das 3x3-Feld setzt. Der Fairness halber darf der erste Zug nicht in die Mitte gesetzt werden – diese Regel kannst du in den Einstellungen ausschalten.',
+  t_startB: 'Das Spiel beginnt damit, dass Spieler O sein Zeichen auf das 3x3-Feld setzt. Der Fairness halber darf der erste Zug nicht in die Mitte gesetzt werden. Diese Regel kannst du in den Einstellungen ausschalten.',
   t_startWho: 'Welches Zeichen anfängt, wählst du auf dem Startbildschirm.',
   t_heightH: 'Die Höhe erweitern',
   t_heightB1: 'Spieler X füllt eine ganze Spalte und löst damit eine Erweiterung der Höhe aus.',
@@ -737,17 +746,17 @@ de: {
   t_widthB1: 'Spieler O füllt eine ganze Zeile und löst damit eine Erweiterung der Breite aus.',
   t_widthB2: 'Da die Zeile voll ist, hat Spieler O den strategischen Vorteil, zu wählen, ob das Feld nach links oder nach rechts wächst.',
   t_bothH: 'Beides auf einmal',
-  t_bothB: 'Ein einzelnes Zeichen kann eine Spalte <b>und</b> eine Zeile vollmachen. Dann schuldet der Spieler dem Feld sowohl eine neue Zeile <b>als auch</b> eine neue Spalte – alle vier grauen Balken erscheinen und beide müssen gesetzt werden, bevor es weitergeht.',
+  t_bothB: 'Ein einzelnes Zeichen kann eine Spalte <b>und</b> eine Zeile vollmachen. Dann schuldet der Spieler dem Feld sowohl eine neue Zeile <b>als auch</b> eine neue Spalte. Alle vier grauen Balken erscheinen und beide müssen gesetzt werden, bevor es weitergeht.',
   t_growH: 'Wie weit es wächst',
-  t_growB: (label, w, h) => `Im Modus <b>${label}</b> endet das Feld bei ${w} Spalten und ${h} Zeilen. Ist diese Grenze erreicht, öffnen sich beim Vollmachen einer Linie keine grauen Balken mehr – stattdessen erscheint kurz ein Hinweis am unteren Bildschirmrand und es geht direkt weiter.<br><br>Beide Grenzen lassen sich in den Einstellungen ändern oder mit <b>Unbegrenztes Feld</b> ganz aufheben.`,
+  t_growB: (label, w, h) => `Im Modus <b>${label}</b> endet das Feld bei ${w} Spalten und ${h} Zeilen. Ist diese Grenze erreicht, öffnen sich beim Vollmachen einer Linie keine grauen Balken mehr. Stattdessen erscheint kurz ein Hinweis am unteren Bildschirmrand und es geht direkt weiter.<br><br>Beide Grenzen lassen sich in den Einstellungen ändern oder mit <b>Unbegrenztes Feld</b> ganz aufheben.`,
   t_zoomH: 'Zoomen & Ziehen',
-  t_zoomB: 'Sobald das Feld nicht mehr in voller Zellgröße passt, werden die Zellen kleiner, damit alles sichtbar bleibt. Zum Hineinzoomen nutzt du die Tasten <b>–</b> und <b>+</b> in der unteren Leiste, eine Zoomgeste oder das Mausrad; zum Bewegen ziehst du das Feld. Das Hineinzoomen endet bei der ursprünglichen Zellgröße, das Herauszoomen beim ganzen Feld. Nach jedem Zug kehrt die Ansicht automatisch zum ganzen Feld zurück.',
+  t_zoomB: 'Sobald das Feld nicht mehr in voller Zellgröße passt, werden die Zellen kleiner, damit alles sichtbar bleibt. Zum Hineinzoomen nutzt du die Zoomtasten in der unteren Leiste, eine Zoomgeste oder das Mausrad; zum Bewegen ziehst du das Feld. Das Hineinzoomen endet bei der ursprünglichen Zellgröße, das Herauszoomen beim ganzen Feld. Nach jedem Zug kehrt die Ansicht automatisch zum ganzen Feld zurück.',
   t_winH: 'Gewinnen',
   t_winB: n => `In einer spannenden Wendung erreicht Spieler X das große Ziel: ${n} Zeichen in einer Reihe und damit ein triumphaler Sieg. Zeile, Spalte und beide Diagonalen zählen.`,
   t_topH: 'Obere Leiste',
   t_home: 'Startbildschirm',
-  t_settingsRow: 'Einstellungen – auch diese Anleitung',
-  t_clock: 'Mit dem „Zeitlimit“ bekommt jeder Spieler eine begrenzte Bedenkzeit. Vorsicht: Läuft die Uhr ab, hast du verloren! Achte auf die kräftiger gefärbte Uhr – sie zeigt, wer am Zug ist.',
+  t_settingsRow: 'Einstellungen, auch diese Anleitung',
+  t_clock: 'Mit dem „Zeitlimit“ bekommt jeder Spieler eine begrenzte Bedenkzeit. Vorsicht: Läuft die Uhr ab, hast du verloren! Achte auf die kräftiger gefärbte Uhr; sie zeigt, wer am Zug ist.',
   t_bottomH: 'Untere Leiste',
   t_undo: 'Mit der linken Taste machst du deinen letzten Zug rückgängig. Sie lässt sich in den Einstellungen ausschalten.',
   t_right: 'Die rechte Taste zeigt mit Symbolen, was gerade zu tun ist, und mit der Farbe, wer am Zug ist.',
@@ -756,17 +765,12 @@ de: {
   t_extendBoth: 'Eine Zeile und eine Spalte erweitern',
   t_winner: 'Siegerbekanntgabe',
 
-  i_provider: 'Anbieter', i_repBy: 'Vertreten durch', i_contact: 'Kontakt',
-  i_vat: 'Umsatzsteuer-ID', i_vatB: 'Umsatzsteuer-Identifikationsnummer: DE 123 456 789',
-  i_liability: 'Haftung für Inhalte',
-  i_liabilityB: 'Als Diensteanbieter sind wir für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Wir sind nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen.',
-  i_links: 'Haftung für Links',
-  i_linksB: 'Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber verantwortlich.',
+  i_madeByH: 'Erstellt von',
+  i_madeByB: 'ExtendOX wurde von Kirill Ivanov entwickelt. Dies ist eine erste Version; geplant sind weitere Funktionen, darunter das Spiel über das Internet, und eine Veröffentlichung im App Store. Wer über die nächsten Schritte sprechen oder dabei mitwirken möchte, darf sich sehr gerne melden.',
+  i_contact: 'Kontakt',
   i_copyright: 'Urheberrecht',
-  i_copyrightB: 'Die durch die Seitenbetreiber erstellten Inhalte auf diesen Seiten unterliegen dem Urheberrecht. Vervielfältigung, Bearbeitung, Verbreitung und jede Verwertung außerhalb der Grenzen des Urheberrechts bedürfen der schriftlichen Zustimmung.',
-  i_privacy: 'Datenschutz',
-  i_privacyB: 'ExtendOX erhebt, speichert und überträgt keine personenbezogenen Daten. Die im Spiel gewählten Einstellungen werden ausschließlich lokal auf diesem Gerät gespeichert.',
-  i_placeholder: 'Platzhaltertext – bitte vor einer Veröffentlichung durch die echten Anbieterangaben ersetzen.',
+  i_copyB: '© 2026 Kirill Ivanov. Alle Rechte vorbehalten. Dieses Spiel sowie sein Design, seine Grafiken und sein Quellcode dürfen ohne vorherige schriftliche Zustimmung des Autors weder ganz noch teilweise kopiert, weitergegeben, verkauft, unterlizenziert oder zu kommerziellen Zwecken verwertet werden.',
+  credits: 'Erstellt von Kirill Ivanov · siehe Impressum',
 
   a_back: 'Zurück', a_undo: 'Rückgängig', a_zoomIn: 'Vergrößern', a_zoomOut: 'Verkleinern',
 },
@@ -774,7 +778,7 @@ de: {
 /* ------------------------------------------------------------------- 中文 -- */
 zh: {
   playNow: '开始游戏', timeLimit: '时间限制', minutesPerPlayer: '每位玩家分钟数',
-  playBot: '与机器人对战', yourPiece: '你的棋子', pieceToStart: '先手棋子',
+  playBot: '与机器人对战', yourPiece: '你的棋子', playerToStart: '先手玩家',
   botWins: '这次机器人赢了！',
   t_botH: '与机器人对战', t_botB: '在主界面点击<b>与机器人对战</b>，选择你的棋子和先手方，然后开始。机器人会连自己的线，当你只差一子就获胜时会来堵你，并且在扩展棋盘前会稍作停顿，让你看清它选了哪一边。与机器人对战时没有计时。',
   minUnit: '分钟', mode: '模式',
@@ -802,7 +806,7 @@ zh: {
   t_selected: '已选择',
   t_modesFoot: '选择模式时，也会把每位玩家分钟数和棋盘最大尺寸设为合适的数值；两者之后仍可更改。',
   t_startH: '开局',
-  t_startB: '游戏由玩家 O 在 3x3 棋盘上落子开始。为了公平，第一个棋子不能下在正中间——这条规则可以在设置中关闭。',
+  t_startB: '游戏由玩家 O 在 3x3 棋盘上落子开始。为了公平，第一个棋子不能下在正中间，这条规则可以在设置中关闭。',
   t_startWho: '先手棋子可以在主界面选择。',
   t_heightH: '扩展高度',
   t_heightB1: '玩家 X 填满了一整列，触发棋盘高度扩展。',
@@ -811,16 +815,16 @@ zh: {
   t_widthB1: '玩家 O 填满了一整行，触发棋盘宽度扩展。',
   t_widthB2: '该行已满，玩家 O 获得战略优势：可以选择向左还是向右扩展棋盘。',
   t_bothH: '同时填满行和列',
-  t_bothB: '一个棋子可能同时填满一列<b>和</b>一行。此时该玩家必须既添加一行<b>又</b>添加一列——四条灰色长条都会出现，两者都放好后才能继续。',
+  t_bothB: '一个棋子可能同时填满一列<b>和</b>一行。此时该玩家必须既添加一行<b>又</b>添加一列，四条灰色长条都会出现，两者都放好后才能继续。',
   t_growH: '能扩展到多大',
-  t_growB: (label, w, h) => `在<b>${label}</b>模式下，棋盘最多扩展到 ${w} 列、${h} 行。达到上限后，填满一条线不再出现灰色长条——屏幕底部会显示一条简短提示，游戏直接继续。<br><br>两个上限都可以在设置中修改，或用<b>无限棋盘</b>完全取消。`,
+  t_growB: (label, w, h) => `在<b>${label}</b>模式下，棋盘最多扩展到 ${w} 列、${h} 行。达到上限后，填满一条线不再出现灰色长条，屏幕底部会显示一条简短提示，游戏直接继续。<br><br>两个上限都可以在设置中修改，或用<b>无限棋盘</b>完全取消。`,
   t_zoomH: '缩放与拖动',
-  t_zoomB: '一旦棋盘无法以完整格子尺寸显示，格子就会缩小，让全部内容保持可见。使用底部栏的 <b>–</b> 和 <b>+</b> 按钮、双指捏合或鼠标滚轮来放大，拖动棋盘来移动视野。放大最多到原始格子尺寸，缩小最多到整个棋盘。每次落子后，视野会自动回到整个棋盘。',
+  t_zoomB: '一旦棋盘无法以完整格子尺寸显示，格子就会缩小，让全部内容保持可见。使用底部栏的缩放按钮、双指捏合或鼠标滚轮来放大，拖动棋盘来移动视野。放大最多到原始格子尺寸，缩小最多到整个棋盘。每次落子后，视野会自动回到整个棋盘。',
   t_winH: '获胜',
   t_winB: n => `在扣人心弦的一刻，玩家 X 达成终极目标：连成 ${n} 个，赢得胜利。行、列以及两条对角线都算数。`,
   t_topH: '顶部栏',
   t_home: '主界面',
-  t_settingsRow: '设置——也包括本教程',
+  t_settingsRow: '设置，也包括本教程',
   t_clock: '开启“时间限制”后，每位玩家都有时间上限。注意：时间用完就算输！留意颜色较深的计时器，它表示轮到谁走棋。',
   t_bottomH: '底部栏',
   t_undo: '用左边的按钮撤销上一步。它可以在设置中关闭。',
@@ -830,17 +834,12 @@ zh: {
   t_extendBoth: '同时扩展一行和一列',
   t_winner: '宣布获胜者',
 
-  i_provider: '提供者', i_repBy: '代表人', i_contact: '联系方式',
-  i_vat: '增值税识别号', i_vatB: '增值税识别号：DE 123 456 789',
-  i_liability: '内容责任',
-  i_liabilityB: '作为服务提供者，我们依据一般法律对本页面上的自有内容负责。我们没有义务监控所传输或存储的第三方信息。',
-  i_links: '链接责任',
-  i_linksB: '本产品包含指向第三方外部网站的链接，我们无法影响其内容。链接页面的内容始终由相应的提供者或运营者负责。',
+  i_madeByH: '开发者',
+  i_madeByB: 'ExtendOX 由 Kirill Ivanov 开发。这是第一个初始版本，后续计划加入更多功能（包括联机对战），并在应用商店上架。欢迎有兴趣讨论下一步计划、或愿意一起实现的朋友随时联系。',
+  i_contact: '联系方式',
   i_copyright: '版权',
-  i_copyrightB: '本页面上由运营者创建的内容受版权保护。超出版权法范围的复制、编辑、传播和任何形式的利用，均需书面同意。',
-  i_privacy: '数据保护',
-  i_privacyB: 'ExtendOX 不收集、不存储、不传输任何个人数据。游戏中选择的设置仅保存在本设备本地。',
-  i_placeholder: '占位文本——发布前请替换为真实的提供者信息。',
+  i_copyB: '© 2026 Kirill Ivanov。保留所有权利。未经作者事先书面许可，不得以任何形式全部或部分复制、转发、出售、再授权本游戏及其设计、美术资源和源代码，也不得将其用于商业目的。',
+  credits: '由 Kirill Ivanov 制作 · 详见法律声明',
 
   a_back: '返回', a_undo: '撤销', a_zoomIn: '放大', a_zoomOut: '缩小',
 },
@@ -848,7 +847,7 @@ zh: {
 /* ----------------------------------------------------------------- हिन्दी -- */
 hi: {
   playNow: 'अभी खेलें', timeLimit: 'समय सीमा', minutesPerPlayer: 'प्रति खिलाड़ी मिनट',
-  playBot: 'बॉट से खेलें', yourPiece: 'आपका निशान', pieceToStart: 'पहला निशान',
+  playBot: 'बॉट से खेलें', yourPiece: 'आपका निशान', playerToStart: 'पहला खिलाड़ी',
   botWins: 'इस बार बॉट जीत गया!',
   t_botH: 'बॉट के साथ खेल', t_botB: 'होम स्क्रीन पर <b>बॉट से खेलें</b> दबाएँ, अपना निशान और पहला खिलाड़ी चुनें, और खेलें। बॉट अपनी लाइनें बनाता है, जब आप जीत से एक निशान दूर होते हैं तो आपको रोकता है, और बोर्ड बढ़ाने से पहले एक पल रुकता है ताकि आप देख सकें कि उसने कौन सी दिशा चुनी। बॉट के खेल में घड़ी नहीं होती।',
   minUnit: 'मिनट', mode: 'मोड',
@@ -860,7 +859,7 @@ hi: {
   undoOffMsg: 'पूर्ववत बटन बंद है। आप इसे सेटिंग्स में फिर से चालू कर सकते हैं।',
   goSettings: 'सेटिंग्स', close: 'बंद करें',
   centreNotice: 'पहला निशान ग्रिड के बिलकुल बीच में नहीं रखा जा सकता।',
-  limitNotice: (w, h, what) => `बोर्ड का अधिकतम आकार (${w} × ${h} खाने) पूरा हो गया – और ${what} नहीं जोड़ी जा सकती।`,
+  limitNotice: (w, h, what) => `बोर्ड का अधिकतम आकार (${w} × ${h} खाने) पूरा हो गया, और ${what} नहीं जोड़ी जा सकती।`,
   limRow: 'पंक्ति', limCol: 'स्तंभ', limBoth: 'पंक्ति या स्तंभ',
 
   settings: 'सेटिंग्स', language: 'भाषा',
@@ -869,14 +868,14 @@ hi: {
   cellsUnit: 'खाने', tutorial: 'ट्यूटोरियल', imprint: 'कानूनी सूचना',
 
   t_shortH: 'ExtendOX एक नज़र में',
-  t_shortB: n => `ExtendOX में आपका स्वागत है – एक रोमांचक मोबाइल गेम जो क्लासिक “टिक टैक टो” को बिलकुल नए स्तर पर ले जाता है! हम 3x3 ग्रिड से शुरू करते हैं, लेकिन तैयार रहें: जैसे ही कोई पंक्ति या स्तंभ भरता है, ग्रिड बढ़ाना पड़ता है। क्या आप रणनीति बनाकर ${n} लगातार का अंतिम लक्ष्य हासिल कर पाएंगे?<br>शानदार मुक़ाबले शुरू करें!`,
+  t_shortB: n => `ExtendOX में आपका स्वागत है। यह एक रोमांचक मोबाइल गेम है जो क्लासिक “टिक टैक टो” को बिलकुल नए स्तर पर ले जाता है! हम 3x3 ग्रिड से शुरू करते हैं, लेकिन तैयार रहें: जैसे ही कोई पंक्ति या स्तंभ भरता है, ग्रिड बढ़ाना पड़ता है। क्या आप रणनीति बनाकर ${n} लगातार का अंतिम लक्ष्य हासिल कर पाएंगे?<br>शानदार मुक़ाबले शुरू करें!`,
   t_modesH: 'खेल मोड',
   t_modesB: 'होम स्क्रीन पर एक मोड चुनें। यह तय करता है कि जीतने के लिए कितने निशान लगातार चाहिए।',
   t_modeWin: n => `जीत के लिए ${n} लगातार`,
   t_selected: 'चयनित',
   t_modesFoot: 'मोड चुनने पर प्रति खिलाड़ी मिनट और बोर्ड का अधिकतम आकार भी उसी के अनुरूप सेट हो जाते हैं; दोनों बाद में बदले जा सकते हैं।',
   t_startH: 'शुरुआत',
-  t_startB: 'खेल की शुरुआत खिलाड़ी O द्वारा 3x3 ग्रिड पर अपना निशान रखने से होती है। निष्पक्षता के लिए पहला निशान बीच में नहीं रखा जा सकता – यह नियम सेटिंग्स में बंद किया जा सकता है।',
+  t_startB: 'खेल की शुरुआत खिलाड़ी O द्वारा 3x3 ग्रिड पर अपना निशान रखने से होती है। निष्पक्षता के लिए पहला निशान बीच में नहीं रखा जा सकता। यह नियम सेटिंग्स में बंद किया जा सकता है।',
   t_startWho: 'कौन सा निशान पहले चलेगा, यह होम स्क्रीन पर चुना जा सकता है।',
   t_heightH: 'ऊँचाई बढ़ाना',
   t_heightB1: 'खिलाड़ी X पूरा एक स्तंभ भर देता है, जिससे ग्रिड की ऊँचाई बढ़ानी पड़ती है।',
@@ -885,16 +884,16 @@ hi: {
   t_widthB1: 'खिलाड़ी O पूरी एक पंक्ति भर देता है, जिससे ग्रिड की चौड़ाई बढ़ानी पड़ती है।',
   t_widthB2: 'पंक्ति पूरी होने पर खिलाड़ी O को यह रणनीतिक लाभ मिलता है कि वह ग्रिड बाईं ओर बढ़ाए या दाईं ओर।',
   t_bothH: 'दोनों एक साथ',
-  t_bothB: 'एक ही निशान से एक स्तंभ <b>और</b> एक पंक्ति दोनों पूरे हो सकते हैं। तब खिलाड़ी को नई पंक्ति <b>और</b> नया स्तंभ दोनों जोड़ने होते हैं – चारों धूसर पट्टियाँ दिखती हैं और आगे खेलने से पहले दोनों रखनी पड़ती हैं।',
+  t_bothB: 'एक ही निशान से एक स्तंभ <b>और</b> एक पंक्ति दोनों पूरे हो सकते हैं। तब खिलाड़ी को नई पंक्ति <b>और</b> नया स्तंभ दोनों जोड़ने होते हैं। चारों धूसर पट्टियाँ दिखती हैं और आगे खेलने से पहले दोनों रखनी पड़ती हैं।',
   t_growH: 'कितना बढ़ सकता है',
-  t_growB: (label, w, h) => `<b>${label}</b> मोड में बोर्ड ${w} स्तंभ और ${h} पंक्तियों पर रुक जाता है। यह सीमा आने के बाद कोई लाइन पूरी करने पर धूसर पट्टियाँ नहीं खुलतीं – इसके बजाय स्क्रीन के नीचे एक छोटा संदेश दिखता है और खेल सीधे चलता रहता है।<br><br>दोनों सीमाएँ सेटिंग्स में बदली जा सकती हैं, या <b>असीमित बोर्ड</b> से पूरी तरह हटाई जा सकती हैं।`,
+  t_growB: (label, w, h) => `<b>${label}</b> मोड में बोर्ड ${w} स्तंभ और ${h} पंक्तियों पर रुक जाता है। यह सीमा आने के बाद कोई लाइन पूरी करने पर धूसर पट्टियाँ नहीं खुलतीं। इसके बजाय स्क्रीन के नीचे एक छोटा संदेश दिखता है और खेल सीधे चलता रहता है।<br><br>दोनों सीमाएँ सेटिंग्स में बदली जा सकती हैं, या <b>असीमित बोर्ड</b> से पूरी तरह हटाई जा सकती हैं।`,
   t_zoomH: 'ज़ूम और खींचना',
-  t_zoomB: 'जैसे ही बोर्ड पूरे खाने के आकार में नहीं समाता, खाने छोटे हो जाते हैं ताकि सब कुछ दिखता रहे। ज़ूम के लिए नीचे की पट्टी के <b>–</b> और <b>+</b> बटन, दो उँगलियों की चुटकी या माउस व्हील का उपयोग करें, और घूमने के लिए बोर्ड को खींचें। ज़ूम इन मूल खाने के आकार तक और ज़ूम आउट पूरे बोर्ड तक ही होता है। हर निशान के बाद दृश्य अपने आप पूरे बोर्ड पर लौट आता है।',
+  t_zoomB: 'जैसे ही बोर्ड पूरे खाने के आकार में नहीं समाता, खाने छोटे हो जाते हैं ताकि सब कुछ दिखता रहे। ज़ूम के लिए नीचे की पट्टी के ज़ूम बटन, दो उँगलियों की चुटकी या माउस व्हील का उपयोग करें, और घूमने के लिए बोर्ड को खींचें। ज़ूम इन मूल खाने के आकार तक और ज़ूम आउट पूरे बोर्ड तक ही होता है। हर निशान के बाद दृश्य अपने आप पूरे बोर्ड पर लौट आता है।',
   t_winH: 'जीत',
-  t_winB: n => `एक रोमांचक मोड़ पर खिलाड़ी X अंतिम लक्ष्य हासिल कर लेता है – ${n} निशान लगातार और शानदार जीत। पंक्ति, स्तंभ और दोनों विकर्ण, सभी गिने जाते हैं।`,
+  t_winB: n => `एक रोमांचक मोड़ पर खिलाड़ी X अंतिम लक्ष्य हासिल कर लेता है, ${n} निशान लगातार और शानदार जीत। पंक्ति, स्तंभ और दोनों विकर्ण, सभी गिने जाते हैं।`,
   t_topH: 'ऊपरी पट्टी',
   t_home: 'होम स्क्रीन',
-  t_settingsRow: 'सेटिंग्स – यह ट्यूटोरियल भी',
+  t_settingsRow: 'सेटिंग्स, यह ट्यूटोरियल भी',
   t_clock: '“समय सीमा” चालू करने पर हर खिलाड़ी को सीमित समय मिलता है। सावधान: समय खत्म हुआ तो हार! गहरे रंग वाली घड़ी पर ध्यान दें, वह बताती है कि बारी किसकी है।',
   t_bottomH: 'निचली पट्टी',
   t_undo: 'बाएँ बटन से अपनी पिछली चाल पूर्ववत करें। इसे सेटिंग्स में बंद किया जा सकता है।',
@@ -904,17 +903,12 @@ hi: {
   t_extendBoth: 'एक पंक्ति और एक स्तंभ दोनों बढ़ाएँ',
   t_winner: 'विजेता की घोषणा',
 
-  i_provider: 'प्रदाता', i_repBy: 'प्रतिनिधि', i_contact: 'संपर्क',
-  i_vat: 'वैट पहचान संख्या', i_vatB: 'वैट पहचान संख्या: DE 123 456 789',
-  i_liability: 'सामग्री की ज़िम्मेदारी',
-  i_liabilityB: 'सेवा प्रदाता के रूप में हम इन पृष्ठों पर अपनी सामग्री के लिए सामान्य कानूनों के अनुसार ज़िम्मेदार हैं। हम प्रेषित या संग्रहीत तृतीय-पक्ष जानकारी की निगरानी के लिए बाध्य नहीं हैं।',
-  i_links: 'लिंक की ज़िम्मेदारी',
-  i_linksB: 'हमारी सेवा में बाहरी वेबसाइटों के लिंक हैं, जिनकी सामग्री पर हमारा कोई नियंत्रण नहीं है। उन पृष्ठों की सामग्री के लिए हमेशा संबंधित प्रदाता या संचालक ही ज़िम्मेदार होता है।',
+  i_madeByH: 'निर्माता',
+  i_madeByB: 'ExtendOX को Kirill Ivanov ने बनाया है। यह पहला शुरुआती संस्करण है; आगे और सुविधाएँ जोड़ने, जिनमें ऑनलाइन खेल भी शामिल है, और गेम को ऐप स्टोर पर प्रकाशित करने की योजना है। जो कोई अगले कदमों पर बात करना चाहे या उन्हें साकार करने में मदद करना चाहे, उसका संपर्क करना सादर स्वागत है।',
+  i_contact: 'संपर्क',
   i_copyright: 'कॉपीराइट',
-  i_copyrightB: 'इन पृष्ठों पर संचालकों द्वारा बनाई गई सामग्री कॉपीराइट के अधीन है। कॉपीराइट कानून की सीमाओं से बाहर किसी भी प्रकार की नकल, संपादन, वितरण या उपयोग के लिए लिखित अनुमति आवश्यक है।',
-  i_privacy: 'डेटा सुरक्षा',
-  i_privacyB: 'ExtendOX कोई व्यक्तिगत डेटा एकत्र, संग्रहीत या प्रेषित नहीं करता। खेल में चुनी गई सेटिंग्स केवल इसी डिवाइस पर स्थानीय रूप से सहेजी जाती हैं।',
-  i_placeholder: 'नमूना पाठ – प्रकाशन से पहले कृपया इसे वास्तविक प्रदाता विवरण से बदलें।',
+  i_copyB: '© 2026 Kirill Ivanov. सर्वाधिकार सुरक्षित। लेखक की पूर्व लिखित अनुमति के बिना इस गेम तथा इसके डिज़ाइन, कलाकृति और स्रोत कोड को पूर्ण या आंशिक रूप से कॉपी, वितरित, बेचा, उप-लाइसेंस या व्यावसायिक उद्देश्यों के लिए उपयोग नहीं किया जा सकता।',
+  credits: 'Kirill Ivanov द्वारा निर्मित · अधिक जानकारी कानूनी सूचना में',
 
   a_back: 'वापस', a_undo: 'पूर्ववत', a_zoomIn: 'ज़ूम इन', a_zoomOut: 'ज़ूम आउट',
 },
@@ -922,7 +916,7 @@ hi: {
 /* --------------------------------------------------------------- Русский -- */
 ru: {
   playNow: 'Играть', timeLimit: 'Лимит времени', minutesPerPlayer: 'Минут на игрока',
-  playBot: 'Играть с ботом', yourPiece: 'Ваш знак', pieceToStart: 'Кто начинает',
+  playBot: 'Играть с ботом', yourPiece: 'Ваш знак', playerToStart: 'Кто начинает',
   botWins: 'На этот раз победил бот!',
   t_botH: 'Игра с ботом', t_botB: 'Нажмите <b>Играть с ботом</b> на главном экране, выберите свой знак и кто начинает, и играйте. Бот строит свои линии, блокирует вашу, когда вам остаётся один знак до победы, и перед расширением поля делает паузу, чтобы вы видели, какую сторону он выбрал. В игре с ботом часов нет.',
   minUnit: 'мин', mode: 'Режим',
@@ -934,7 +928,7 @@ ru: {
   undoOffMsg: 'Кнопка отмены хода выключена. Её можно снова включить в настройках.',
   goSettings: 'Настройки', close: 'Закрыть',
   centreNotice: 'Самый первый знак нельзя ставить в центр поля.',
-  limitNotice: (w, h, what) => `Достигнут максимальный размер поля (${w} × ${h} клеток) — добавить ещё ${what} нельзя.`,
+  limitNotice: (w, h, what) => `Достигнут максимальный размер поля (${w} × ${h} клеток), добавить ещё ${what} нельзя.`,
   limRow: 'строку', limCol: 'столбец', limBoth: 'строку или столбец',
 
   settings: 'Настройки', language: 'Язык',
@@ -943,14 +937,14 @@ ru: {
   cellsUnit: 'клеток', tutorial: 'Обучение', imprint: 'Правовая информация',
 
   t_shortH: 'ExtendOX вкратце',
-  t_shortB: n => `Добро пожаловать в ExtendOX — увлекательную мобильную игру, которая выводит классические «крестики-нолики» на совершенно новый уровень! Мы начинаем с поля 3x3, но будьте готовы расширять его, как только заполнится строка или столбец. Сможете ли вы всё рассчитать и достичь главной цели — ${n} в ряд?<br>Пусть начнутся великие партии!`,
+  t_shortB: n => `Добро пожаловать в ExtendOX, увлекательную мобильную игру, которая выводит классические «крестики-нолики» на совершенно новый уровень! Мы начинаем с поля 3x3, но будьте готовы расширять его, как только заполнится строка или столбец. Сможете ли вы всё рассчитать и достичь главной цели: ${n} в ряд?<br>Пусть начнутся великие партии!`,
   t_modesH: 'Режимы игры',
   t_modesB: 'Выберите режим на главном экране. Он определяет, сколько знаков в ряд нужно для победы.',
   t_modeWin: n => `${n} в ряд для победы`,
   t_selected: 'выбрано',
   t_modesFoot: 'Выбор режима также задаёт минуты на игрока и максимальный размер поля; и то, и другое можно изменить позже.',
   t_startH: 'Начало',
-  t_startB: 'Игру начинает игрок O, ставя свой знак на поле 3x3. Ради честности самый первый знак нельзя ставить в центр — это правило можно отключить в настройках.',
+  t_startB: 'Игру начинает игрок O, ставя свой знак на поле 3x3. Ради честности самый первый знак нельзя ставить в центр. Это правило можно отключить в настройках.',
   t_startWho: 'Какой знак начинает, выбирается на главном экране.',
   t_heightH: 'Расширение по высоте',
   t_heightB1: 'Игрок X заполняет весь столбец, и поле нужно расширить по высоте.',
@@ -959,36 +953,31 @@ ru: {
   t_widthB1: 'Игрок O заполняет всю строку, и поле нужно расширить по ширине.',
   t_widthB2: 'Строка заполнена, и игрок O получает стратегическое преимущество: он выбирает, расширять поле влево или вправо.',
   t_bothH: 'Оба сразу',
-  t_bothB: 'Один знак может заполнить и столбец, <b>и</b> строку. Тогда игрок должен добавить и новую строку, <b>и</b> новый столбец — появляются все четыре серые полосы, и обе нужно поставить, прежде чем игра продолжится.',
+  t_bothB: 'Один знак может заполнить и столбец, <b>и</b> строку. Тогда игрок должен добавить и новую строку, <b>и</b> новый столбец, и появляются все четыре серые полосы, и обе нужно поставить, прежде чем игра продолжится.',
   t_growH: 'Насколько поле растёт',
-  t_growB: (label, w, h) => `В режиме <b>${label}</b> поле останавливается на ${w} столбцах и ${h} строках. После этого заполнение линии больше не открывает серые полосы — вместо этого внизу экрана появляется короткое сообщение, и игра сразу продолжается.<br><br>Оба предела можно изменить в настройках или полностью снять с помощью параметра <b>Безграничное поле</b>.`,
+  t_growB: (label, w, h) => `В режиме <b>${label}</b> поле останавливается на ${w} столбцах и ${h} строках. После этого заполнение линии больше не открывает серые полосы. Вместо этого внизу экрана появляется короткое сообщение, и игра сразу продолжается.<br><br>Оба предела можно изменить в настройках или полностью снять с помощью параметра <b>Безграничное поле</b>.`,
   t_zoomH: 'Масштаб и перетаскивание',
-  t_zoomB: 'Как только поле перестаёт помещаться при полном размере клетки, клетки уменьшаются, чтобы всё оставалось видно. Для увеличения используйте кнопки <b>–</b> и <b>+</b> в нижней панели, жест сведения пальцев или колесо мыши, а чтобы перемещаться — перетаскивайте поле. Увеличение доходит до исходного размера клетки, уменьшение — до всего поля. После каждого хода вид автоматически возвращается ко всему полю.',
+  t_zoomB: 'Как только поле перестаёт помещаться при полном размере клетки, клетки уменьшаются, чтобы всё оставалось видно. Для увеличения используйте кнопки масштаба в нижней панели, жест сведения пальцев или колесо мыши, а чтобы перемещаться, перетаскивайте поле. Увеличение доходит до исходного размера клетки, уменьшение до всего поля. После каждого хода вид автоматически возвращается ко всему полю.',
   t_winH: 'Победа',
-  t_winB: n => `В напряжённый момент игрок X достигает главной цели — ${n} знаков в ряд и уверенная победа. Считаются строка, столбец и обе диагонали.`,
+  t_winB: n => `В напряжённый момент игрок X достигает главной цели, ${n} знаков в ряд и уверенная победа. Считаются строка, столбец и обе диагонали.`,
   t_topH: 'Верхняя панель',
   t_home: 'Главный экран',
-  t_settingsRow: 'Настройки — включая это обучение',
-  t_clock: 'Включённый «Лимит времени» задаёт каждому игроку ограниченное время. Осторожно: если время выйдет, вы проиграли! Следите за более яркими часами — они показывают, чей сейчас ход.',
+  t_settingsRow: 'Настройки, включая это обучение',
+  t_clock: 'Включённый «Лимит времени» задаёт каждому игроку ограниченное время. Осторожно: если время выйдет, вы проиграли! Следите за более яркими часами; они показывают, чей сейчас ход.',
   t_bottomH: 'Нижняя панель',
   t_undo: 'Левая кнопка отменяет ваш последний ход. Её можно выключить в настройках.',
-  t_right: 'Правая кнопка значками показывает, что нужно сделать сейчас, а цветом — чей ход.',
+  t_right: 'Правая кнопка значками показывает, что нужно сделать сейчас, а цветом показывает, чей ход.',
   t_place: 'Поставьте свой знак на поле',
   t_extend: 'Добавить строку или столбец',
   t_extendBoth: 'Добавить и строку, и столбец',
   t_winner: 'Объявление победителя',
 
-  i_provider: 'Поставщик', i_repBy: 'В лице', i_contact: 'Контакты',
-  i_vat: 'НДС-номер', i_vatB: 'Идентификационный номер НДС: DE 123 456 789',
-  i_liability: 'Ответственность за содержание',
-  i_liabilityB: 'Как поставщик услуг мы отвечаем за собственное содержание этих страниц в соответствии с общим законодательством. Мы не обязаны отслеживать передаваемую или хранимую информацию третьих лиц.',
-  i_links: 'Ответственность за ссылки',
-  i_linksB: 'Наше предложение содержит ссылки на внешние сайты, на содержание которых мы не влияем. За содержание таких страниц всегда отвечает соответствующий поставщик или оператор.',
+  i_madeByH: 'Автор',
+  i_madeByB: 'ExtendOX создал Kirill Ivanov. Это первая начальная версия; в планах новые возможности, в том числе игра по сети, и публикация в app store. Все, кто хочет обсудить дальнейшие шаги или помочь их осуществить, могут смело связаться.',
+  i_contact: 'Контакты',
   i_copyright: 'Авторское право',
-  i_copyrightB: 'Содержание, созданное операторами сайта на этих страницах, защищено авторским правом. Копирование, изменение, распространение и любое использование за пределами закона требуют письменного согласия.',
-  i_privacy: 'Защита данных',
-  i_privacyB: 'ExtendOX не собирает, не хранит и не передаёт персональные данные. Выбранные в игре настройки сохраняются только локально на этом устройстве.',
-  i_placeholder: 'Текст-заполнитель — перед публикацией замените его реальными сведениями о поставщике.',
+  i_copyB: '© 2026 Kirill Ivanov. Все права защищены. Эту игру, а также её дизайн, графику и исходный код нельзя копировать, распространять, продавать, передавать по сублицензии или использовать в коммерческих целях, полностью или частично, без предварительного письменного разрешения автора.',
+  credits: 'Создано Kirill Ivanov · подробнее в правовой информации',
 
   a_back: 'Назад', a_undo: 'Отменить', a_zoomIn: 'Увеличить', a_zoomOut: 'Уменьшить',
 },
@@ -1644,9 +1633,10 @@ function viewHome() {
         ? numField('minutes', t('minUnit'))
         : `<span class="chip off">-</span>`)}
       ${settingRow(t('mode'), modeField())}
-      ${settingRow(t('pieceToStart'), pieceChoice('pickStart', S.startPiece))}
+      ${settingRow(t('playerToStart'), pieceChoice('pickStart', S.startPiece))}
     </div>
     <div class="gap-rest"></div>
+    <p class="credits">${t('credits')}</p>
   </div>`;
 }
 
@@ -1681,7 +1671,7 @@ function viewBotSetup() {
 
     <div class="card settings-card">
       ${settingRow(t('yourPiece'),    pieceChoice('pickHuman', S.humanPiece))}
-      ${settingRow(t('pieceToStart'), pieceChoice('pickStart', S.startPiece))}
+      ${settingRow(t('playerToStart'), pieceChoice('pickStart', S.startPiece))}
     </div>
     <div class="gap-rest"></div>
   </div>`;
@@ -2168,15 +2158,11 @@ function viewImprint() {
       <div class="title">${t('imprint')}</div>
     </div>
     <div class="imprint">
-      <p><b>${t('i_provider')}</b><br>Musterfirma<br>Musterstraße 1<br>12345 Musterstadt</p>
-      ${sec(t('i_repBy'), 'Max Mustermann')}
-      ${sec(t('i_contact'), '+49 (0) 123 44 55 66<br>info@musterfirma.de')}
-      ${sec(t('i_vat'), t('i_vatB'))}
-      ${sec(t('i_liability'), t('i_liabilityB'))}
-      ${sec(t('i_links'), t('i_linksB'))}
-      ${sec(t('i_copyright'), t('i_copyrightB'))}
-      ${sec(t('i_privacy'), t('i_privacyB'))}
-      <p class="ph">${t('i_placeholder')}</p>
+      ${sec(t('i_madeByH'), t('i_madeByB'))}
+      ${sec(t('i_contact'),
+        'Kirill Ivanov<br>' +
+        '<a href="mailto:kirill-ivanov-private@outlook.com">kirill-ivanov-private@outlook.com</a>')}
+      ${sec(t('i_copyright'), t('i_copyB'))}
       <p class="build">ExtendOX · Build ${BUILD}</p>
     </div>
   </div>`;
