@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<!-- ExtendOX build v25 -->
-<meta name="version" content="25" />
+<!-- ExtendOX build v33 -->
+<meta name="version" content="33" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#ffffff" />
 <title>ExtendOX</title>
@@ -119,6 +119,23 @@ svg{display:block}
   padding:11px 28px;transition:transform .12s ease;
 }
 .btn-play:active{transform:scale(.97)}
+.btn-play.red{background:var(--toggle-off)}    /* EA5A47 75 % — as Time Limit off */
+.btn-play.blue{background:var(--toggle-on)}    /* 4472C4 75 % — as Time Limit on  */
+
+/* Play Now above Play a bot, both centred and the same width */
+.play-stack{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:14px}
+.play-stack .btn-play{width:max-content;min-width:172px;text-align:center}
+
+/* mark picker: the chosen mark keeps its colour on a light grey box, the other
+   is greyed out with no box */
+.pieces{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.piece{
+  width:48px;height:42px;display:flex;align-items:center;justify-content:center;
+  border-radius:12px;background:transparent;opacity:.3;
+  transition:opacity .15s ease,background .15s ease,transform .12s ease;
+}
+.piece.sel{opacity:1;background:var(--chip)}
+.piece:active{transform:scale(.94)}
 
 .title{font-size:var(--fs-std);font-weight:700;text-align:center}
 
@@ -138,8 +155,8 @@ svg{display:block}
 }
 .settings-card{flex:0 0 auto;padding:18px 20px;display:flex;flex-direction:column;gap:16px}
 .screen.scroll .settings-card{margin-bottom:16px}
-.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.row-label{font-size:var(--fs-std)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.row-label{font-size:var(--fs-std);line-height:1.3}
 
 .toggle{
   width:62px;height:34px;border-radius:999px;position:relative;flex:0 0 auto;
@@ -152,7 +169,7 @@ svg{display:block}
 
 .chip{
   background:var(--chip);border-radius:12px;padding:7px 16px;
-  font-size:var(--fs-std);min-width:82px;text-align:center;
+  font-size:var(--fs-std);min-width:76px;text-align:center;
   font-variant-numeric:tabular-nums;flex:0 0 auto;
 }
 .chip.off{opacity:.5}
@@ -338,7 +355,10 @@ svg{display:block}
   .chip{min-width:70px;padding:7px 12px}
   .selchip{padding:7px 10px 7px 12px}
   .numchip .unit,.selchip .unit{font-size:13px}
-  .row{gap:10px}
+  .row{gap:8px}
+  .piece{width:42px}
+  .pieces{gap:6px}
+  .play-stack .btn-play{min-width:158px;padding:11px 22px}
 }
 
 /* ============================================================
@@ -361,7 +381,7 @@ svg{display:block}
 </head>
 <body>
   <div id="app"></div>
-  <script>window.ExtendOX = { build: '25' };</script>
+  <script>window.ExtendOX = { build: '33' };</script>
   <script>
 /* =============================================================================
    ExtendOX — translations.
@@ -392,6 +412,9 @@ const T = {
 /* ---------------------------------------------------------------- English -- */
 en: {
   playNow: 'Play Now', timeLimit: 'Time Limit', minutesPerPlayer: 'Minutes per player',
+  playBot: 'Play a bot', yourPiece: 'Your piece', pieceToStart: 'Piece to start',
+  botWins: 'Bot wins this time!',
+  t_botH: 'Playing a bot', t_botB: 'Tap <b>Play a bot</b> on the home screen, choose your mark and who opens, then play. The bot builds its own lines, blocks yours the moment you are one mark from winning, and pauses before it extends the board so you can see which side it picked. There is no clock in a bot game.',
   minUnit: 'min', mode: 'Mode',
   modeFast: 'Fast', modeClassic: 'Classic', modePro: 'Pro',
   toWin: n => `${n} to win`,
@@ -418,6 +441,7 @@ en: {
   t_modesFoot: 'Choosing a mode also sets the minutes per player and the maximum board size to values that suit it; both can still be changed afterwards.',
   t_startH: 'Start',
   t_startB: 'The game kicks off with Player O placing their mark on the 3x3 grid. To ensure fairness, the first mark cannot be placed in the middle of the grid – a rule you can switch off in the settings.',
+  t_startWho: 'Which mark opens can be chosen on the home screen.',
   t_heightH: 'Extending the height',
   t_heightB1: 'Player X fills an entire column, triggering a grid height extension.',
   t_heightB2: 'With the column complete, Player X gains the strategic advantage of choosing whether to extend the grid upwards or downwards. Only once the new row is placed may Player O continue.',
@@ -462,6 +486,9 @@ en: {
 /* ---------------------------------------------------------------- Español -- */
 es: {
   playNow: 'Jugar ahora', timeLimit: 'Límite de tiempo', minutesPerPlayer: 'Minutos por jugador',
+  playBot: 'Jugar contra el bot', yourPiece: 'Tu ficha', pieceToStart: 'Quién empieza',
+  botWins: '¡Esta vez gana el bot!',
+  t_botH: 'Jugar contra el bot', t_botB: 'Pulsa <b>Jugar contra el bot</b> en la pantalla de inicio, elige tu ficha y quién empieza, y juega. El bot construye sus propias líneas, bloquea la tuya en cuanto te falta una sola ficha para ganar, y espera un momento antes de ampliar el tablero para que veas qué lado ha elegido. Contra el bot no hay reloj.',
   minUnit: 'min', mode: 'Modo',
   modeFast: 'Rápido', modeClassic: 'Clásico', modePro: 'Pro',
   toWin: n => `${n} para ganar`,
@@ -488,6 +515,7 @@ es: {
   t_modesFoot: 'Elegir un modo también ajusta los minutos por jugador y el tamaño máximo del tablero a valores adecuados; ambos se pueden cambiar después.',
   t_startH: 'Inicio',
   t_startB: 'La partida comienza cuando el jugador O coloca su marca en la cuadrícula de 3x3. Para que sea justo, la primera marca no se puede colocar en el centro: una regla que puedes desactivar en los ajustes.',
+  t_startWho: 'Qué ficha empieza se elige en la pantalla de inicio.',
   t_heightH: 'Ampliar la altura',
   t_heightB1: 'El jugador X completa una columna entera y provoca una ampliación de la altura.',
   t_heightB2: 'Con la columna completa, el jugador X obtiene la ventaja estratégica de elegir si amplía el tablero hacia arriba o hacia abajo. El jugador O solo puede continuar cuando se haya añadido la nueva fila.',
@@ -532,6 +560,10 @@ es: {
 /* --------------------------------------------------------------- Français -- */
 fr: {
   playNow: 'Jouer', timeLimit: 'Limite de temps', minutesPerPlayer: 'Minutes par joueur',
+  playBot: 'Jouer contre le bot', yourPiece: 'Votre pièce', pieceToStart: 'Qui commence',
+  botWins: 'Le bot gagne cette fois !',
+  t_botH: 'Jouer contre le bot',
+  t_botB: "Touchez <b>Jouer contre le bot</b> sur l'écran d'accueil, choisissez votre pièce et qui commence, puis jouez. Le bot construit ses propres lignes, bloque la vôtre dès qu'il vous manque une seule pièce pour gagner, et marque un temps d'arrêt avant d'agrandir la grille pour que vous voyiez le côté choisi. Il n'y a pas d'horloge contre le bot.",
   minUnit: 'min', mode: 'Mode',
   modeFast: 'Rapide', modeClassic: 'Classique', modePro: 'Pro',
   toWin: n => `${n} pour gagner`,
@@ -558,6 +590,7 @@ fr: {
   t_modesFoot: 'Choisir un mode règle aussi les minutes par joueur et la taille maximale de la grille sur des valeurs adaptées ; les deux restent modifiables ensuite.',
   t_startH: 'Début',
   t_startB: 'La partie commence lorsque le joueur O place sa marque sur la grille 3x3. Par souci d\'équité, la toute première marque ne peut pas être placée au centre – une règle désactivable dans les réglages.',
+  t_startWho: "La pièce qui commence se choisit sur l'écran d'accueil.",
   t_heightH: 'Agrandir la hauteur',
   t_heightB1: 'Le joueur X remplit une colonne entière, ce qui déclenche un agrandissement en hauteur.',
   t_heightB2: 'La colonne étant complète, le joueur X obtient l\'avantage stratégique de choisir s\'il agrandit la grille vers le haut ou vers le bas. Le joueur O ne peut continuer qu\'une fois la nouvelle ligne ajoutée.',
@@ -602,6 +635,9 @@ fr: {
 /* ---------------------------------------------------------------- Deutsch -- */
 de: {
   playNow: 'Jetzt spielen', timeLimit: 'Zeitlimit', minutesPerPlayer: 'Minuten pro Spieler',
+  playBot: 'Gegen Bot spielen', yourPiece: 'Dein Zeichen', pieceToStart: 'Erstes Zeichen',
+  botWins: 'Diesmal gewinnt der Bot!',
+  t_botH: 'Gegen den Bot spielen', t_botB: 'Tippe auf dem Startbildschirm auf <b>Gegen Bot spielen</b>, wähle dein Zeichen und wer anfängt, und los. Der Bot baut eigene Reihen, blockiert deine, sobald dir nur noch ein Zeichen zum Sieg fehlt, und wartet kurz, bevor er das Feld erweitert, damit du siehst, welche Seite er gewählt hat. Im Spiel gegen den Bot gibt es keine Uhr.',
   minUnit: 'Min.', mode: 'Modus',
   modeFast: 'Schnell', modeClassic: 'Klassisch', modePro: 'Profi',
   toWin: n => `${n} zum Sieg`,
@@ -628,6 +664,7 @@ de: {
   t_modesFoot: 'Ein Modus setzt auch die Minuten pro Spieler und die maximale Feldgröße auf passende Werte; beides lässt sich danach weiter ändern.',
   t_startH: 'Start',
   t_startB: 'Das Spiel beginnt damit, dass Spieler O sein Zeichen auf das 3x3-Feld setzt. Der Fairness halber darf der erste Zug nicht in die Mitte gesetzt werden – diese Regel kannst du in den Einstellungen ausschalten.',
+  t_startWho: 'Welches Zeichen anfängt, wählst du auf dem Startbildschirm.',
   t_heightH: 'Die Höhe erweitern',
   t_heightB1: 'Spieler X füllt eine ganze Spalte und löst damit eine Erweiterung der Höhe aus.',
   t_heightB2: 'Da die Spalte voll ist, hat Spieler X den strategischen Vorteil, zu wählen, ob das Feld nach oben oder nach unten wächst. Erst wenn die neue Zeile gesetzt ist, darf Spieler O weiterspielen.',
@@ -672,6 +709,9 @@ de: {
 /* ------------------------------------------------------------------- 中文 -- */
 zh: {
   playNow: '开始游戏', timeLimit: '时间限制', minutesPerPlayer: '每位玩家分钟数',
+  playBot: '与机器人对战', yourPiece: '你的棋子', pieceToStart: '先手棋子',
+  botWins: '这次机器人赢了！',
+  t_botH: '与机器人对战', t_botB: '在主界面点击<b>与机器人对战</b>，选择你的棋子和先手方，然后开始。机器人会连自己的线，当你只差一子就获胜时会来堵你，并且在扩展棋盘前会稍作停顿，让你看清它选了哪一边。与机器人对战时没有计时。',
   minUnit: '分钟', mode: '模式',
   modeFast: '快速', modeClassic: '经典', modePro: '专业',
   toWin: n => `连成 ${n} 个获胜`,
@@ -698,6 +738,7 @@ zh: {
   t_modesFoot: '选择模式时，也会把每位玩家分钟数和棋盘最大尺寸设为合适的数值；两者之后仍可更改。',
   t_startH: '开局',
   t_startB: '游戏由玩家 O 在 3x3 棋盘上落子开始。为了公平，第一个棋子不能下在正中间——这条规则可以在设置中关闭。',
+  t_startWho: '先手棋子可以在主界面选择。',
   t_heightH: '扩展高度',
   t_heightB1: '玩家 X 填满了一整列，触发棋盘高度扩展。',
   t_heightB2: '该列已满，玩家 X 获得战略优势：可以选择向上还是向下扩展棋盘。只有新的一行落定后，玩家 O 才能继续。',
@@ -742,6 +783,9 @@ zh: {
 /* ----------------------------------------------------------------- हिन्दी -- */
 hi: {
   playNow: 'अभी खेलें', timeLimit: 'समय सीमा', minutesPerPlayer: 'प्रति खिलाड़ी मिनट',
+  playBot: 'बॉट से खेलें', yourPiece: 'आपका निशान', pieceToStart: 'पहला निशान',
+  botWins: 'इस बार बॉट जीत गया!',
+  t_botH: 'बॉट के साथ खेल', t_botB: 'होम स्क्रीन पर <b>बॉट से खेलें</b> दबाएँ, अपना निशान और पहला खिलाड़ी चुनें, और खेलें। बॉट अपनी लाइनें बनाता है, जब आप जीत से एक निशान दूर होते हैं तो आपको रोकता है, और बोर्ड बढ़ाने से पहले एक पल रुकता है ताकि आप देख सकें कि उसने कौन सी दिशा चुनी। बॉट के खेल में घड़ी नहीं होती।',
   minUnit: 'मिनट', mode: 'मोड',
   modeFast: 'तेज़', modeClassic: 'क्लासिक', modePro: 'प्रो',
   toWin: n => `जीत के लिए ${n}`,
@@ -768,6 +812,7 @@ hi: {
   t_modesFoot: 'मोड चुनने पर प्रति खिलाड़ी मिनट और बोर्ड का अधिकतम आकार भी उसी के अनुरूप सेट हो जाते हैं; दोनों बाद में बदले जा सकते हैं।',
   t_startH: 'शुरुआत',
   t_startB: 'खेल की शुरुआत खिलाड़ी O द्वारा 3x3 ग्रिड पर अपना निशान रखने से होती है। निष्पक्षता के लिए पहला निशान बीच में नहीं रखा जा सकता – यह नियम सेटिंग्स में बंद किया जा सकता है।',
+  t_startWho: 'कौन सा निशान पहले चलेगा, यह होम स्क्रीन पर चुना जा सकता है।',
   t_heightH: 'ऊँचाई बढ़ाना',
   t_heightB1: 'खिलाड़ी X पूरा एक स्तंभ भर देता है, जिससे ग्रिड की ऊँचाई बढ़ानी पड़ती है।',
   t_heightB2: 'स्तंभ पूरा होने पर खिलाड़ी X को यह रणनीतिक लाभ मिलता है कि वह ग्रिड ऊपर बढ़ाए या नीचे। नई पंक्ति जुड़ने के बाद ही खिलाड़ी O आगे खेल सकता है।',
@@ -812,6 +857,9 @@ hi: {
 /* --------------------------------------------------------------- Русский -- */
 ru: {
   playNow: 'Играть', timeLimit: 'Лимит времени', minutesPerPlayer: 'Минут на игрока',
+  playBot: 'Играть с ботом', yourPiece: 'Ваш знак', pieceToStart: 'Кто начинает',
+  botWins: 'На этот раз победил бот!',
+  t_botH: 'Игра с ботом', t_botB: 'Нажмите <b>Играть с ботом</b> на главном экране, выберите свой знак и кто начинает, и играйте. Бот строит свои линии, блокирует вашу, когда вам остаётся один знак до победы, и перед расширением поля делает паузу, чтобы вы видели, какую сторону он выбрал. В игре с ботом часов нет.',
   minUnit: 'мин', mode: 'Режим',
   modeFast: 'Быстрый', modeClassic: 'Классика', modePro: 'Про',
   toWin: n => `${n} в ряд`,
@@ -838,6 +886,7 @@ ru: {
   t_modesFoot: 'Выбор режима также задаёт минуты на игрока и максимальный размер поля; и то, и другое можно изменить позже.',
   t_startH: 'Начало',
   t_startB: 'Игру начинает игрок O, ставя свой знак на поле 3x3. Ради честности самый первый знак нельзя ставить в центр — это правило можно отключить в настройках.',
+  t_startWho: 'Какой знак начинает, выбирается на главном экране.',
   t_heightH: 'Расширение по высоте',
   t_heightB1: 'Игрок X заполняет весь столбец, и поле нужно расширить по высоте.',
   t_heightB2: 'Столбец заполнен, и игрок X получает стратегическое преимущество: он выбирает, расширять поле вверх или вниз. Игрок O может продолжить только после того, как новая строка добавлена.',
@@ -1036,6 +1085,8 @@ const DEFAULTS = {
   minutes: 5,
   mode: 'fast',          // fast = 4 to win, classic = 5, pro = 6
   blockCentre: true,     // the first mark may not go in the middle
+  humanPiece: 'O',       // bot games: which mark you play
+  startPiece: 'O',       // bot games: which mark opens
   unlimited: false,      // no cap on how far the board may grow
   maxW: 10,              // maximum number of columns
   maxH: 10,              // maximum number of rows
@@ -1076,13 +1127,17 @@ const limits = () => S.unlimited
 /* marks in a row needed to win, for the mode currently selected */
 const winLen = () => MODES[S.mode].win;
 
-function newGame() {
+function newGame(bot) {
   const secs = S.minutes * 60;
   return {
     winLen: winLen(),       // frozen for the whole match
+    bot: !!bot,             // playing against the bot — no clock in that mode
+    human: bot ? S.humanPiece : null,
+    botP:  bot ? other(S.humanPiece) : null,
     rows: 3, cols: 3,
     grid: [[null, null, null], [null, null, null], [null, null, null]],
-    turn: 'O',              // Player O opens the game (per the tutorial design)
+    // whichever mark is picked as the opener goes first, in both modes
+    turn: S.startPiece,
     pendRow: false,         // owes the board one extra ROW    (a column filled up)
     pendCol: false,         // owes the board one extra COLUMN (a row filled up)
     moveNo: 0,
@@ -1105,6 +1160,7 @@ const snapshot = g => JSON.stringify({
 });
 
 function canPlace(g, r, c) {
+  if (g.bot && g.turn !== g.human) return false;    // the bot's turn — hands off
   return !g.over && !g.pendRow && !g.pendCol && !S.dialog && !g.grid[r][c];
 }
 
@@ -1129,7 +1185,10 @@ const boardFull = g => g.grid.every(row => row.every(Boolean));
 
 function place(r, c) {
   const g = S.game;
-  if (!canPlace(g, r, c)) return;
+  // the bot bypasses canPlace's turn lock, but obeys every other rule
+  const mine = g.bot && g.turn === g.botP;
+  if (!mine && !canPlace(g, r, c)) return;
+  if (mine && (g.over || g.pendRow || g.pendCol || g.grid[r][c])) return;
 
   // "To ensure fairness, the first mark cannot be placed in the middle of the grid!"
   if (S.blockCentre && g.moveNo === 0 && r === 1 && c === 1) {
@@ -1163,6 +1222,19 @@ function place(r, c) {
   render();
 }
 
+/* grows the board by one row / column — no turn logic, so the bot can use it
+   on a throw-away copy to look one step ahead */
+function growBoard(g, side) {
+  if (side === 'top' || side === 'bottom') {
+    const fresh = new Array(g.cols).fill(null);
+    side === 'top' ? g.grid.unshift(fresh) : g.grid.push(fresh);
+    g.rows++;
+  } else {
+    g.grid.forEach(row => side === 'left' ? row.unshift(null) : row.push(null));
+    g.cols++;
+  }
+}
+
 function extend(side) {
   const g = S.game;
   if (g.over) return;
@@ -1171,14 +1243,8 @@ function extend(side) {
 
   g.history.push(snapshot(g));
   resetView();
-  if (isRow) {
-    const fresh = new Array(g.cols).fill(null);
-    side === 'top' ? g.grid.unshift(fresh) : g.grid.push(fresh);
-    g.rows++; g.pendRow = false;
-  } else {
-    g.grid.forEach(row => side === 'left' ? row.unshift(null) : row.push(null));
-    g.cols++; g.pendCol = false;
-  }
+  growBoard(g, side);
+  if (isRow) g.pendRow = false; else g.pendCol = false;
   if (!g.pendRow && !g.pendCol) finishTurn(g);
   render();
 }
@@ -1205,10 +1271,160 @@ function setNotice(g, text) {
 function undo() {
   const g = S.game;
   if (!g.history.length) return;
+  cancelBot();
   Object.assign(g, JSON.parse(g.history.pop()));
+  // against the bot, step all the way back to the start of your own turn —
+  // undoing only the bot's half of a turn would just make it move again
+  if (g.bot) {
+    while (g.history.length && (g.over || g.pendRow || g.pendCol || g.turn !== g.human)) {
+      Object.assign(g, JSON.parse(g.history.pop()));
+    }
+  }
   S.lastPlaced = null; g.notice = null;
   resetView();
   render();
+}
+
+/* =================================== bot ===================================
+   Placement, in this order:
+     1  never the centre on move 1 while that rule is on
+     2  win now if a mark completes a line
+     3  block when the player is one mark from winning (with a double threat
+        only one can be blocked — that is unavoidable, so block the one that
+        also helps the bot most)
+     4  otherwise extend the bot's own longest still-open line, random on ties
+
+   Extension side:
+     1  never a side that hands the player an immediate win
+     2  prefer a side that gives the bot two winning cells at once, which the
+        player cannot both block
+     3  otherwise random
+   ========================================================================== */
+const DIRS = [[0, 1], [1, 0], [1, 1], [1, -1]];
+const BOT_MOVE_MS   = 480;    // pause before the bot places a mark
+const BOT_EXTEND_MS = 1000;   // the grey bars stay visible this long first
+
+const pickOne = arr => arr[Math.floor(Math.random() * arr.length)];
+const boardCopy = g => ({ rows: g.rows, cols: g.cols, grid: g.grid.map(r => r.slice()), winLen: g.winLen });
+const inBoard = (g, r, c) => r >= 0 && r < g.rows && c >= 0 && c < g.cols;
+
+/* an end that runs off the board only counts as blocked once the board itself
+   can no longer grow that way */
+function offBoardOpen(g, r, c) {
+  const L = limits();
+  if ((r < 0 || r >= g.rows) && g.rows >= L.maxRows) return false;
+  if ((c < 0 || c >= g.cols) && g.cols >= L.maxCols) return false;
+  return true;
+}
+
+/* longest run through (r,c) for `who`, ignoring runs that are already dead.
+   Call with the mark already written into g.grid. */
+function runThrough(g, r, c, who) {
+  let best = 0;
+  for (const [dr, dc] of DIRS) {
+    let run = 1;
+    const ends = [];
+    for (const s of [1, -1]) {
+      let rr = r + dr * s, cc = c + dc * s;
+      while (inBoard(g, rr, cc) && g.grid[rr][cc] === who) { run++; rr += dr * s; cc += dc * s; }
+      ends.push([rr, cc]);
+    }
+    if (run >= g.winLen) return { run, win: true };
+    const dead = ends.every(([rr, cc]) => inBoard(g, rr, cc)
+      ? (g.grid[rr][cc] && g.grid[rr][cc] !== who)
+      : !offBoardOpen(g, rr, cc));
+    if (!dead) best = Math.max(best, run);
+  }
+  return { run: best, win: false };
+}
+
+/* what a mark at (r,c) would be worth to `who` */
+function tryCell(g, r, c, who) {
+  g.grid[r][c] = who;
+  const v = runThrough(g, r, c, who);
+  g.grid[r][c] = null;
+  return v;
+}
+
+function emptyCells(g, skipCentre) {
+  const out = [];
+  for (let r = 0; r < g.rows; r++) for (let c = 0; c < g.cols; c++) {
+    if (g.grid[r][c]) continue;
+    if (skipCentre && r === 1 && c === 1) continue;
+    out.push([r, c]);
+  }
+  return out;
+}
+
+const bestBy = (list, score) => {
+  let top = -Infinity, keep = [];
+  for (const item of list) {
+    const s = score(item);
+    if (s > top) { top = s; keep = [item]; } else if (s === top) keep.push(item);
+  }
+  return pickOne(keep);
+};
+
+function botChooseMove(g) {
+  const me = g.botP, you = g.human;
+  let cells = emptyCells(g, S.blockCentre && g.moveNo === 0);
+  if (!cells.length) cells = emptyCells(g, false);      // nothing else legal
+  if (!cells.length) return null;
+
+  const winning = cells.filter(([r, c]) => tryCell(g, r, c, me).win);
+  if (winning.length) return pickOne(winning);
+
+  const threats = cells.filter(([r, c]) => tryCell(g, r, c, you).win);
+  if (threats.length) return bestBy(threats, ([r, c]) => tryCell(g, r, c, me).run);
+
+  return bestBy(cells, ([r, c]) => tryCell(g, r, c, me).run);
+}
+
+function botChooseSide(g, isRow) {
+  const sides = isRow ? ['top', 'bottom'] : ['left', 'right'];
+  const looks = sides.map(side => {
+    const t = boardCopy(g);
+    growBoard(t, side);
+    let playerCanWin = false, myWinCells = 0;
+    for (const [r, c] of emptyCells(t, false)) {
+      if (!playerCanWin && tryCell(t, r, c, g.human).win) playerCanWin = true;
+      if (tryCell(t, r, c, g.botP).win) myWinCells++;
+      if (playerCanWin && myWinCells >= 2) break;
+    }
+    return { side, playerCanWin, fork: myWinCells >= 2 };
+  });
+
+  let allowed = looks.filter(l => !l.playerCanWin);
+  if (!allowed.length) allowed = looks;                 // has to extend regardless
+  const forks = allowed.filter(l => l.fork);
+  return pickOne(forks.length ? forks : allowed).side;
+}
+
+/* ---- driver: one step per timer tick so the player can follow along ------ */
+let botTimer = 0, botToken = 0, botArmedAt = 0;
+const botThinking = () => botTimer !== 0;
+
+function cancelBot() { clearTimeout(botTimer); botTimer = 0; botToken++; }
+
+const botsTurn = g => g && g.bot && !g.over && g.turn === g.botP;
+const botIdle = () => botsTurn(S.game) && S.screen === 'game' && !S.dialog;
+
+function maybeBotTurn() {
+  const g = S.game;
+  if (!botIdle() || botTimer) return;
+  const token = botToken;
+  const owes = g.pendRow || g.pendCol;
+  botArmedAt = Date.now();
+  botTimer = setTimeout(() => {
+    botTimer = 0;
+    const gg = S.game;
+    if (token !== botToken || !botsTurn(gg) || S.screen !== 'game' || S.dialog) return;
+    if (gg.pendRow || gg.pendCol) extend(botChooseSide(gg, gg.pendRow));
+    else {
+      const m = botChooseMove(gg);
+      if (m) place(m[0], m[1]);
+    }
+  }, owes ? BOT_EXTEND_MS : BOT_MOVE_MS);
 }
 
 /* --------------------------------- clocks ---------------------------------- */
@@ -1216,7 +1432,14 @@ let clockRef = Date.now();
 setInterval(() => {
   const g = S.game;
   const now = Date.now();
-  const running = g && S.timeLimit && !g.over && S.screen === 'game' && !S.dialog;
+
+  // Watchdog: the bot is normally armed by render(). If a step is ever missed —
+  // a cancelled timer with no render behind it, a tab that was frozen — re-arm
+  // it here so a bot game can never sit there waiting forever.
+  if (botIdle() && (!botTimer || now - botArmedAt > 4000)) { cancelBot(); maybeBotTurn(); }
+
+  // no clock in a bot game
+  const running = g && S.timeLimit && !g.bot && !g.over && S.screen === 'game' && !S.dialog;
   if (!running) { clockRef = now; return; }
   const before = Math.ceil(g.clock[g.turn]);
   g.clock[g.turn] = Math.max(0, g.clock[g.turn] - (now - clockRef) / 1000);
@@ -1244,11 +1467,12 @@ function paintClocks() {
 /* ================================ rendering ================================ */
 function render() {
   $app.innerHTML = ({
-    home: viewHome, game: viewGame, settings: viewSettings,
+    home: viewHome, botsetup: viewBotSetup, game: viewGame, settings: viewSettings,
     tutorial: viewTutorial, imprint: viewImprint,
   })[S.screen]();
   if (S.screen === 'game') layoutBoard();
   placeModeMenu();
+  maybeBotTurn();
 }
 
 /* Open a dropdown on whichever side has more room and cap its height so it can
@@ -1319,7 +1543,10 @@ function viewHome() {
     <div class="home-brand">${brandStack()}</div>
 
     <div class="sp" style="flex:1.5"></div>
-    <button class="btn-play" data-act="play" style="align-self:center">${t('playNow')}</button>
+    <div class="play-stack">
+      <button class="btn-play red" data-act="play">${t('playNow')}</button>
+      <button class="btn-play blue" data-act="go" data-to="botsetup">${t('playBot')}</button>
+    </div>
     <div class="sp" style="flex:1"></div>
 
     <div class="card settings-card">
@@ -1328,6 +1555,43 @@ function viewHome() {
         ? numField('minutes', t('minUnit'))
         : `<span class="chip off">-</span>`)}
       ${settingRow(t('mode'), modeField())}
+      ${settingRow(t('pieceToStart'), pieceChoice('pickStart', S.startPiece))}
+    </div>
+    <div class="sp" style="flex:1.9"></div>
+  </div>`;
+}
+
+/* ------------------------------- bot set-up -------------------------------- */
+/* two mark buttons: the chosen one keeps its colour and sits on a light grey
+   box, the other is greyed out with no box */
+const pieceChoice = (act, current) => `
+  <div class="pieces">
+    ${['O', 'X'].map(k => `
+      <button class="piece${k === current ? ' sel' : ''}" data-act="${act}" data-key="${k}"
+              aria-pressed="${k === current}" aria-label="${k === 'O' ? 'O' : 'X'}">
+        ${smallMark(k, 30)}
+      </button>`).join('')}
+  </div>`;
+
+function viewBotSetup() {
+  return `
+  <div class="screen screen-home">
+    <div class="home-top">
+      <button class="iconbtn" data-act="go" data-to="home" aria-label="${t('t_home')}">${IC.home()}</button>
+      <button class="iconbtn" data-act="go" data-to="settings" aria-label="${t('settings')}">${IC.sliders()}</button>
+    </div>
+
+    <div class="home-brand">${brandStack()}</div>
+
+    <div class="sp" style="flex:1.5"></div>
+    <div class="play-stack">
+      <button class="btn-play blue" data-act="play" data-bot="1">${t('playBot')}</button>
+    </div>
+    <div class="sp" style="flex:1"></div>
+
+    <div class="card settings-card">
+      ${settingRow(t('yourPiece'),    pieceChoice('pickHuman', S.humanPiece))}
+      ${settingRow(t('pieceToStart'), pieceChoice('pickStart', S.startPiece))}
     </div>
     <div class="sp" style="flex:1.9"></div>
   </div>`;
@@ -1339,6 +1603,8 @@ function indicator() {
   const tint = (col, ic) => `<span class="tint" style="color:${col}">${ic}</span>`;
   if (g.over) {
     if (g.reason === 'draw') return `<span class="emo24">🤝</span>`;
+    // nothing to celebrate when the bot took it
+    if (g.bot && g.winner === g.botP) return `<span class="emo24">😔</span>`;
     return tint(colorOf(g.winner), IC.party(24));
   }
   const col = colorOf(g.turn);
@@ -1352,14 +1618,20 @@ function announcement() {
   const g = S.game;
   if (!g.over) return '';
   const draw = g.reason === 'draw';
-  const who = draw ? t('draw')
-    : `${smallMark(g.winner, 24)}<span>${g.reason === 'time' ? t('winsByTime') : t('wins')}</span>`;
+  const botBeatYou = g.bot && !draw && g.winner === g.botP;
+
+  let art, who;
+  if (draw)            { art = '<span class="emo-draw">🤝</span>'; who = t('draw'); }
+  else if (botBeatYou) { art = '<span class="emo-draw">😔</span>'; who = `<span>${t('botWins')}</span>`; }
+  else                 { art = partyBig();
+                         who = `${smallMark(g.winner, 24)}<span>${g.reason === 'time' ? t('winsByTime') : t('wins')}</span>`; }
+
   return `
   <div class="announce">
-    <div class="party">${draw ? '<span class="emo-draw">🤝</span>' : partyBig()}</div>
+    <div class="party">${art}</div>
     <div class="col">
       <div class="who">${who}</div>
-      <button class="btn-play" data-act="play">${t('playAgain')}</button>
+      <button class="btn-play${g.bot ? ' blue' : ''}" data-act="play" ${g.bot ? 'data-bot="1"' : ''}>${t('playAgain')}</button>
     </div>
   </div>`;
 }
@@ -1380,7 +1652,7 @@ function viewGame() {
   <div class="screen screen-game">
     <div class="topbar">
       <button class="iconbtn flat" ${home} aria-label="${t('t_home')}">${IC.home(24)}</button>
-      ${S.timeLimit ? `<div class="clocks">${clockChip(g, 'O')}${clockChip(g, 'X')}</div>` : wordmark()}
+      ${S.timeLimit && !g.bot ? `<div class="clocks">${clockChip(g, 'O')}${clockChip(g, 'X')}</div>` : wordmark()}
       <button class="iconbtn flat" data-act="go" data-to="settings" aria-label="${t('settings')}">${IC.sliders(24)}</button>
     </div>
 
@@ -1529,8 +1801,10 @@ function boardHTML() {
   h += gridLines(g.rows, g.cols, cell, lw, '#000');
 
   if (!faded) {
-    if (g.pendRow) h += strip('top', g.rows, g.cols, cell, lw, rad, true) + strip('bottom', g.rows, g.cols, cell, lw, rad, true);
-    if (g.pendCol) h += strip('left', g.rows, g.cols, cell, lw, rad, true) + strip('right', g.rows, g.cols, cell, lw, rad, true);
+    // while the bot is choosing, the bars are shown but not tappable
+    const live = !(g.bot && g.turn === g.botP);
+    if (g.pendRow) h += strip('top', g.rows, g.cols, cell, lw, rad, live) + strip('bottom', g.rows, g.cols, cell, lw, rad, live);
+    if (g.pendCol) h += strip('left', g.rows, g.cols, cell, lw, rad, live) + strip('right', g.rows, g.cols, cell, lw, rad, live);
   }
 
   if (g.over && g.winLine) {
@@ -1581,7 +1855,7 @@ function strip(side, rows, cols, cell, lw, rad, interactive) {
       inner += `<div class="gsep" style="top:${j * cell - lw / 2}px;left:0;height:${lw}px;width:${cell}px"></div>`;
     inner += `<div class="gsep" style="top:0;${side === 'left' ? 'right' : 'left'}:0;height:${H}px;width:${lw}px"></div>`;
   }
-  return `<div class="ghost" ${interactive ? `data-act="extend" data-side="${side}"` : ''}
+  return `<div class="ghost" data-side="${side}" ${interactive ? `data-act="extend"` : ''}
       style="left:${box.l}px;top:${box.t}px;width:${box.w}px;height:${box.h}px;border-radius:${radius}">
       ${inner}<div class="gplus">${IC.plus(Math.round(cell * .52))}</div></div>`;
 }
@@ -1741,7 +2015,7 @@ function viewTutorial() {
     </div>
 
     <h3>${t('t_startH')}</h3>
-    <div class="card">${t('t_startB')}<div class="mini">${miniBoard(START)}</div></div>
+    <div class="card">${t('t_startB')} ${t('t_startWho')}<div class="mini">${miniBoard(START)}</div></div>
 
     <h3>${t('t_heightH')}</h3>
     <div class="card">${t('t_heightB1')}<div class="mini">${miniBoard(COL)}</div></div>
@@ -1759,6 +2033,9 @@ function viewTutorial() {
 
     <h3>${t('t_zoomH')}</h3>
     <div class="card">${t('t_zoomB')}</div>
+
+    <h3>${t('t_botH')}</h3>
+    <div class="card">${t('t_botB')}</div>
 
     <h3>${t('t_winH')}</h3>
     <div class="card">${t('t_winB', W)}<div class="mini">${miniBoard(WIN, null, W > 5 ? 27 : 30)}</div></div>
@@ -1829,8 +2106,13 @@ $app.addEventListener('click', e => {
     case 'go':          S.stack = el.dataset.to === 'home' ? [] : [...S.stack, S.screen];
                         S.screen = el.dataset.to; S.dialog = null; S.modeOpen = S.langOpen = false; break;
     case 'back':        S.screen = S.stack.pop() || 'home'; break;
-    case 'play':        S.game = newGame(); S.stack = []; S.screen = 'game'; S.modeOpen = false;
+    case 'play':        cancelBot();
+                        S.game = newGame(el.dataset.bot === '1');
+                        S.stack = []; S.screen = 'game'; S.modeOpen = S.langOpen = false;
                         S.dialog = null; S.lastPlaced = null; resetView(); clockRef = Date.now(); break;
+
+    case 'pickHuman':   S.humanPiece = el.dataset.key === 'X' ? 'X' : 'O'; store.save(); break;
+    case 'pickStart':   S.startPiece = el.dataset.key === 'X' ? 'X' : 'O'; store.save(); break;
 
     case 'toggleTime':      S.timeLimit   = !S.timeLimit;   store.save(); break;
     case 'toggleCentre':    S.blockCentre = !S.blockCentre; store.save(); break;
@@ -1841,9 +2123,9 @@ $app.addEventListener('click', e => {
     case 'extend':      return extend(el.dataset.side);
     case 'zoom':        return zoomTo(view.k * (+el.dataset.dir > 0 ? 1.6 : 1 / 1.6));
     case 'undo':        if (!S.undoOn) { S.dialog = 'undoOff'; break; } return undo();
-    case 'askEnd':      S.dialog = 'end'; break;
+    case 'askEnd':      S.dialog = 'end'; cancelBot(); break;
     case 'closeDialog': S.dialog = null; clockRef = Date.now(); break;
-    case 'endGame':     S.dialog = null; S.game = null; S.stack = []; S.screen = 'home'; break;
+    case 'endGame':     cancelBot(); S.dialog = null; S.game = null; S.stack = []; S.screen = 'home'; break;
     default: return;
   }
   render();
