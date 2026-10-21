@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<!-- ExtendOX build v4.2 -->
-<meta name="version" content="4.2" />
+<!-- ExtendOX build v5.1 -->
+<meta name="version" content="5.1" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#ffffff" />
 <title>ExtendOX</title>
@@ -470,7 +470,7 @@ svg{display:block}
 </head>
 <body>
   <div id="app"></div>
-  <script>window.ExtendOX = { build: '4.2' };</script>
+  <script>window.ExtendOX = { build: '5.1' };</script>
   <script>
 /* =============================================================================
    ExtendOX — translations.
@@ -502,8 +502,8 @@ const T = {
 en: {
   playNow: 'Play Now', timeLimit: 'Time Limit', minutesPerPlayer: 'Minutes per player',
   playBot: 'Play a bot', yourPiece: 'Your piece', playerToStart: 'Player to start',
+  botEasy: 'Easy', botHard: 'Difficult',
   botWins: 'Bot wins this time!',
-  t_botH: 'Playing a bot', t_botB: 'Tap <b>Play a bot</b> on the home screen, choose your mark and who opens, then play. The bot builds its own lines, blocks yours the moment you are one mark from winning, and pauses before it extends the board so you can see which side it picked. There is no clock in a bot game.',
   minUnit: 'min', mode: 'Mode',
   modeFast: 'Fast', modeClassic: 'Classic', modePro: 'Pro',
   toWin: n => `${n} to win`,
@@ -571,8 +571,8 @@ en: {
 es: {
   playNow: 'Jugar ahora', timeLimit: 'Límite de tiempo', minutesPerPlayer: 'Minutos por jugador',
   playBot: 'Jugar contra el bot', yourPiece: 'Tu ficha', playerToStart: 'Quién empieza',
+  botEasy: 'Fácil', botHard: 'Difícil',
   botWins: '¡Esta vez gana el bot!',
-  t_botH: 'Jugar contra el bot', t_botB: 'Pulsa <b>Jugar contra el bot</b> en la pantalla de inicio, elige tu ficha y quién empieza, y juega. El bot construye sus propias líneas, bloquea la tuya en cuanto te falta una sola ficha para ganar, y espera un momento antes de ampliar el tablero para que veas qué lado ha elegido. Contra el bot no hay reloj.',
   minUnit: 'min', mode: 'Modo',
   modeFast: 'Rápido', modeClassic: 'Clásico', modePro: 'Pro',
   toWin: n => `${n} para ganar`,
@@ -640,9 +640,8 @@ es: {
 fr: {
   playNow: 'Jouer', timeLimit: 'Limite de temps', minutesPerPlayer: 'Minutes par joueur',
   playBot: 'Jouer contre le bot', yourPiece: 'Votre pièce', playerToStart: 'Qui commence',
+  botEasy: 'Facile', botHard: 'Difficile',
   botWins: 'Le bot gagne cette fois !',
-  t_botH: 'Jouer contre le bot',
-  t_botB: "Touchez <b>Jouer contre le bot</b> sur l'écran d'accueil, choisissez votre pièce et qui commence, puis jouez. Le bot construit ses propres lignes, bloque la vôtre dès qu'il vous manque une seule pièce pour gagner, et marque un temps d'arrêt avant d'agrandir la grille pour que vous voyiez le côté choisi. Il n'y a pas d'horloge contre le bot.",
   minUnit: 'min', mode: 'Mode',
   modeFast: 'Rapide', modeClassic: 'Classique', modePro: 'Pro',
   toWin: n => `${n} pour gagner`,
@@ -710,8 +709,8 @@ fr: {
 de: {
   playNow: 'Jetzt spielen', timeLimit: 'Zeitlimit', minutesPerPlayer: 'Minuten pro Spieler',
   playBot: 'Gegen Bot spielen', yourPiece: 'Dein Zeichen', playerToStart: 'Erster Spieler',
+  botEasy: 'Leicht', botHard: 'Schwer',
   botWins: 'Diesmal gewinnt der Bot!',
-  t_botH: 'Gegen den Bot spielen', t_botB: 'Tippe auf dem Startbildschirm auf <b>Gegen Bot spielen</b>, wähle dein Zeichen und wer anfängt, und los. Der Bot baut eigene Reihen, blockiert deine, sobald dir nur noch ein Zeichen zum Sieg fehlt, und wartet kurz, bevor er das Feld erweitert, damit du siehst, welche Seite er gewählt hat. Im Spiel gegen den Bot gibt es keine Uhr.',
   minUnit: 'Min.', mode: 'Modus',
   modeFast: 'Schnell', modeClassic: 'Klassisch', modePro: 'Profi',
   toWin: n => `${n} zum Sieg`,
@@ -779,8 +778,8 @@ de: {
 zh: {
   playNow: '开始游戏', timeLimit: '时间限制', minutesPerPlayer: '每位玩家分钟数',
   playBot: '与机器人对战', yourPiece: '你的棋子', playerToStart: '先手玩家',
+  botEasy: '简单', botHard: '困难',
   botWins: '这次机器人赢了！',
-  t_botH: '与机器人对战', t_botB: '在主界面点击<b>与机器人对战</b>，选择你的棋子和先手方，然后开始。机器人会连自己的线，当你只差一子就获胜时会来堵你，并且在扩展棋盘前会稍作停顿，让你看清它选了哪一边。与机器人对战时没有计时。',
   minUnit: '分钟', mode: '模式',
   modeFast: '快速', modeClassic: '经典', modePro: '专业',
   toWin: n => `连成 ${n} 个获胜`,
@@ -848,8 +847,8 @@ zh: {
 hi: {
   playNow: 'अभी खेलें', timeLimit: 'समय सीमा', minutesPerPlayer: 'प्रति खिलाड़ी मिनट',
   playBot: 'बॉट से खेलें', yourPiece: 'आपका निशान', playerToStart: 'पहला खिलाड़ी',
+  botEasy: 'आसान', botHard: 'कठिन',
   botWins: 'इस बार बॉट जीत गया!',
-  t_botH: 'बॉट के साथ खेल', t_botB: 'होम स्क्रीन पर <b>बॉट से खेलें</b> दबाएँ, अपना निशान और पहला खिलाड़ी चुनें, और खेलें। बॉट अपनी लाइनें बनाता है, जब आप जीत से एक निशान दूर होते हैं तो आपको रोकता है, और बोर्ड बढ़ाने से पहले एक पल रुकता है ताकि आप देख सकें कि उसने कौन सी दिशा चुनी। बॉट के खेल में घड़ी नहीं होती।',
   minUnit: 'मिनट', mode: 'मोड',
   modeFast: 'तेज़', modeClassic: 'क्लासिक', modePro: 'प्रो',
   toWin: n => `जीत के लिए ${n}`,
@@ -917,8 +916,8 @@ hi: {
 ru: {
   playNow: 'Играть', timeLimit: 'Лимит времени', minutesPerPlayer: 'Минут на игрока',
   playBot: 'Играть с ботом', yourPiece: 'Ваш знак', playerToStart: 'Кто начинает',
+  botEasy: 'Лёгкий', botHard: 'Сложный',
   botWins: 'На этот раз победил бот!',
-  t_botH: 'Игра с ботом', t_botB: 'Нажмите <b>Играть с ботом</b> на главном экране, выберите свой знак и кто начинает, и играйте. Бот строит свои линии, блокирует вашу, когда вам остаётся один знак до победы, и перед расширением поля делает паузу, чтобы вы видели, какую сторону он выбрал. В игре с ботом часов нет.',
   minUnit: 'мин', mode: 'Режим',
   modeFast: 'Быстрый', modeClassic: 'Классика', modePro: 'Про',
   toWin: n => `${n} в ряд`,
@@ -983,6 +982,696 @@ ru: {
 },
 
 };
+
+  </script>
+  <script>
+/* =============================================================================
+   ExtendOX — the engine behind the "Difficult" bot (4 in a row).
+
+   A proof-number search (df-pn) over the real rules: growing board, owed
+   extensions, board caps, the off-centre opening. It is the same prover that
+   solved the game offline (see README §1, "How the Difficult bot decides"):
+     · whoever opens on the middle of an edge can always force a win,
+     · a corner opening loses to a reply in the centre,
+   so the bot does not follow a script. On every turn it proves, move by move,
+   that it can still win; when it cannot, it defends as stubbornly as the
+   position allows and pounces on the first mistake.
+
+   Runs in a Web Worker when the browser allows one (built from this very
+   function, so the one-file build still works), otherwise on the page.
+   ========================================================================== */
+'use strict';
+
+function ExtendOXEngine() {
+  const DR = [0, 1, 1, 1], DC = [1, 0, 1, -1];
+  const INF = 0x3FFFFFFF;
+  const ABORT = { abort: true };
+  const VCF_BUDGET = 2000;     // nodes for one "chain of threats" search
+  const now = () => performance.now();
+
+  /* rules of the game being played */
+  let K = 4, CAPR = 10, CAPC = 10, CENTRE = true, SYM = 8, cfgId = '';
+
+  /* ------------------------------------------------------------- positions
+     { R, C, g: Uint8Array (0 empty, 1 = O, 2 = X), turn: 1|2, moves,
+       pR / pC: the player to act owes a row / a column, drawn }            */
+  const mk = (R, C, g, turn, moves, pR, pC, drawn) => ({ R, C, g, turn, moves, pR, pC, drawn });
+
+  function run(s, r, c, dr, dc, p) {
+    let n = 0; r += dr; c += dc;
+    while (r >= 0 && r < s.R && c >= 0 && c < s.C && s.g[r * s.C + c] === p) { n++; r += dr; c += dc; }
+    return n;
+  }
+  function winsAt(s, r, c, p) {
+    for (let d = 0; d < 4; d++)
+      if (1 + run(s, r, c, DR[d], DC[d], p) + run(s, r, c, -DR[d], -DC[d], p) >= K) return true;
+    return false;
+  }
+  /* empty cells where p would win at once: 0, 1 or 2 (= two or more); the
+     first one found is left in tCell */
+  let tCell = -1;
+  function threats(s, p) {
+    let n = 0; tCell = -1;
+    const g = s.g, C = s.C;
+    for (let i = 0; i < g.length; i++) {
+      if (g[i] !== 0) continue;
+      const r = (i / C) | 0;
+      if (winsAt(s, r, i - r * C, p)) { if (n === 0) tCell = i; if (++n >= 2) return 2; }
+    }
+    return n;
+  }
+  /* the mark of the player to act goes on cell i (never a winning cell — wins
+     are caught before any move is generated) */
+  function place(s, i) {
+    const g = s.g.slice(); g[i] = s.turn;
+    const R = s.R, C = s.C, r = (i / C) | 0, c = i - r * C;
+    let colFull = true, rowFull = true;
+    for (let a = 0; a < R; a++) if (g[a * C + c] === 0) { colFull = false; break; }
+    for (let b = 0; b < C; b++) if (g[r * C + b] === 0) { rowFull = false; break; }
+    const pR = colFull && R < CAPR, pC = rowFull && C < CAPC;
+    let turn = s.turn, drawn = false;
+    if (!pR && !pC) { if (g.indexOf(0) < 0) drawn = true; else turn = 3 - turn; }
+    return mk(R, C, g, turn, s.moves + 1, pR, pC, drawn);
+  }
+  /* rs: -1 no row, 0 on top, 1 at the bottom · cs: -1 no column, 0 left, 1 right */
+  function extend(s, rs, cs) {
+    const R = s.R + (rs >= 0 ? 1 : 0), C = s.C + (cs >= 0 ? 1 : 0);
+    const ro = rs === 0 ? 1 : 0, co = cs === 0 ? 1 : 0, g = new Uint8Array(R * C);
+    for (let i = 0; i < s.R; i++) for (let j = 0; j < s.C; j++) g[(i + ro) * C + j + co] = s.g[i * s.C + j];
+    return mk(R, C, g, 3 - s.turn, s.moves, false, false, false);
+  }
+  function extOptions(s) {
+    const o = [];
+    for (const rs of (s.pR ? [0, 1] : [-1])) for (const cs of (s.pC ? [0, 1] : [-1])) o.push([rs, cs]);
+    return o;
+  }
+  const centreOf = s => (s.moves === 0 && CENTRE && s.R === 3 && s.C === 3) ? 4 : -1;
+
+  /* ------------------------------------------ win-in-three, chains of fours
+     How many different winning cells p gains by filling m (p had none). */
+  function newWins(s, m, p) {
+    const R = s.R, C = s.C, r0 = (m / C) | 0, c0 = m - r0 * C;
+    let first = -1;
+    for (let d = 0; d < 4; d++) {
+      const dr = DR[d], dc = DC[d];
+      for (let o = -(K - 1); o <= 0; o++) {
+        const sr = r0 + o * dr, sc = c0 + o * dc, er = sr + (K - 1) * dr, ec = sc + (K - 1) * dc;
+        if (sr < 0 || sr >= R || sc < 0 || sc >= C || er < 0 || er >= R || ec < 0 || ec >= C) continue;
+        let hole = -1, bad = false;
+        for (let k = 0; k < K; k++) {
+          const i = (sr + k * dr) * C + sc + k * dc;
+          if (i === m) continue;
+          const v = s.g[i];
+          if (v === p) continue;
+          if (v !== 0 || hole >= 0) { bad = true; break; }
+          hole = i;
+        }
+        if (bad || hole < 0) continue;
+        if (first < 0) first = hole; else if (hole !== first) return 2;
+      }
+    }
+    return first < 0 ? 0 : 1;
+  }
+  /* after playing m (and the best owed extension) the opponent has no win */
+  function safeAfter(s, m) {
+    const t = place(s, m);
+    if (t.drawn) return false;
+    if (!(t.pR || t.pC)) return true;
+    const op = 3 - s.turn;
+    for (const [rs, cs] of extOptions(t)) if (threats(extend(t, rs, cs), op) === 0) return true;
+    return false;
+  }
+  /* a mark that leaves two winning cells at once; forced = the opponent's one
+     winning cell (then that is the only candidate), or -1 */
+  function w3Cell(s, forced) {
+    const me = s.turn;
+    if (forced >= 0) return newWins(s, forced, me) >= 2 && safeAfter(s, forced) ? forced : -1;
+    const g = s.g;
+    for (let i = 0; i < g.length; i++) if (g[i] === 0 && newWins(s, i, me) >= 2 && safeAfter(s, i)) return i;
+    return -1;
+  }
+  /* victory by continuous fours: keep threatening to complete a line (each
+     time the opponent must block, every extension choice of theirs is tried)
+     until two winning cells appear at once. Returns the first mark, or -1. */
+  let vcfLeft = 0;
+  function vcfMove(s) { vcfLeft = VCF_BUDGET; return vcf(s, 16); }
+  function vcf(s, depth) {
+    if (--vcfLeft < 0) return -1;
+    const me = s.turn, op = 3 - me;
+    if (threats(s, me) > 0) return tCell;
+    const n = threats(s, op);
+    if (n >= 2) return -1;
+    const forced = n === 1 ? tCell : -1;
+    const w3 = w3Cell(s, forced);
+    if (w3 >= 0) return w3;
+    if (depth === 0) return -1;
+    const g = s.g;
+    for (let m = 0; m < g.length; m++) {
+      if (forced >= 0 && m !== forced) continue;
+      if (g[m] !== 0 || newWins(s, m, me) === 0) continue;
+      const t = place(s, m);
+      if (t.drawn) continue;
+      for (const o of (t.pR || t.pC) ? extOptions(t) : [null]) {
+        const u = o ? extend(t, o[0], o[1]) : t;
+        if (threats(u, op) > 0) continue;                 // they would simply win
+        const wn = threats(u, me);
+        if (wn === 0) continue;
+        if (wn >= 2) return m;
+        const v = place(u, tCell);                        // their forced block
+        if (v.drawn) continue;
+        let all = true;
+        for (const o2 of (v.pR || v.pC) ? extOptions(v) : [null]) {
+          if (vcf(o2 ? extend(v, o2[0], o2[1]) : v, depth - 1) < 0) { all = false; break; }
+        }
+        if (all) return m;
+        if (vcfLeft < 0) return -1;
+      }
+    }
+    return -1;
+  }
+
+  /* ----------------------------------------------- position keys (symmetry)
+     The 8 reflections/rotations give the same game, except that a transpose
+     swaps rows and columns — only allowed when both caps are equal. */
+  const maps = new Map();
+  function symMaps(R, C) {
+    const id = R * 4096 + C;
+    let m = maps.get(id);
+    if (m) return m;
+    m = [];
+    for (let t = 0; t < 8; t++) {
+      const tr = t >= 4, R2 = tr ? C : R, C2 = tr ? R : C, a = new Int32Array(R * C);
+      let k = 0;
+      for (let i = 0; i < R2; i++) for (let j = 0; j < C2; j++) {
+        let r, c;
+        switch (t) {
+          case 0: r = i; c = j; break;
+          case 1: r = i; c = C - 1 - j; break;
+          case 2: r = R - 1 - i; c = j; break;
+          case 3: r = R - 1 - i; c = C - 1 - j; break;
+          case 4: r = j; c = i; break;
+          case 5: r = R - 1 - j; c = i; break;
+          case 6: r = j; c = C - 1 - i; break;
+          default: r = R - 1 - j; c = C - 1 - i;
+        }
+        a[k++] = r * C + c;
+      }
+      m.push(a);
+    }
+    maps.set(id, m);
+    return m;
+  }
+  const fmix = h => {
+    h ^= h >>> 16; h = Math.imul(h, 0x85EBCA6B); h ^= h >>> 13; h = Math.imul(h, 0xC2B2AE35); h ^= h >>> 16;
+    return h >>> 0;
+  };
+  let K1 = 0, K2 = 0;
+  function key(s) {
+    const m = symMaps(s.R, s.C), g = s.g, n = g.length, f = s.moves === 0 ? 1 : 0;
+    let b1 = 0, b2 = 0, have = false;
+    for (let t = 0; t < SYM; t++) {
+      const tr = t >= 4, R2 = tr ? s.C : s.R, C2 = tr ? s.R : s.C;
+      const pr = (tr ? s.pC : s.pR) ? 1 : 0, pc = (tr ? s.pR : s.pC) ? 1 : 0;
+      const head = R2 | (C2 << 8) | (s.turn << 16) | (pr << 18) | (pc << 19) | (f << 20);
+      let h1 = Math.imul(0x811C9DC5 ^ head, 0x01000193), h2 = Math.imul(0x9E3779B9 ^ head, 0x5BD1E995);
+      const a = m[t];
+      for (let k = 0; k < n; k++) {
+        const v = g[a[k]];
+        h1 = Math.imul(h1 ^ v, 0x01000193);
+        h2 = Math.imul(h2 ^ (v + 0x2F), 0x5BD1E995); h2 ^= h2 >>> 15;
+      }
+      h1 = fmix(h1); h2 = fmix(h2 ^ 0x27D4EB2F);
+      if (!have || h1 < b1 || (h1 === b1 && h2 < b2)) { b1 = h1; b2 = h2; have = true; }
+    }
+    K1 = b1; K2 = b2;
+  }
+
+  /* ----------------------------------------------- transposition tables
+     One per player: the numbers mean "can this player force a win".      */
+  function newTT(bits) {
+    const n = 1 << bits;
+    return { m: n - 1, k1: new Uint32Array(n), k2: new Uint32Array(n), pn: new Uint32Array(n), dn: new Uint32Array(n) };
+  }
+  const TTS = [null, newTT(20), newTT(20)];
+  let X = 1, T = TTS[1];
+  const setX = p => { X = p; T = TTS[p]; };
+  let LP = 1, LD = 1;
+  function lookup(k1, k2) {
+    const b = (k1 & T.m) & ~3;
+    for (let i = b; i < b + 4; i++)
+      if (T.k1[i] === k1 && T.k2[i] === k2 && (T.pn[i] | T.dn[i]) !== 0) { LP = T.pn[i]; LD = T.dn[i]; return true; }
+    LP = 1; LD = 1; return false;
+  }
+  function store(k1, k2, pn, dn) {
+    const b = (k1 & T.m) & ~3;
+    let victim = -1, worst = Infinity;
+    for (let i = b; i < b + 4; i++) {
+      if (T.k1[i] === k1 && T.k2[i] === k2) { victim = i; break; }
+      if ((T.pn[i] | T.dn[i]) === 0) { victim = i; worst = 0; continue; }
+      const solved = T.pn[i] === 0 || T.dn[i] === 0;
+      const value = solved ? Number.MAX_SAFE_INTEGER : T.pn[i] + T.dn[i];
+      if (worst !== 0 && value < worst) { worst = value; victim = i; }
+    }
+    T.k1[victim] = k1; T.k2[victim] = k2; T.pn[victim] = pn; T.dn[victim] = dn;
+  }
+  function configure(c) {
+    const id = [c.K, c.capR, c.capC, c.centre].join('|');
+    if (id === cfgId) return;
+    cfgId = id;
+    K = c.K; CAPR = c.capR; CAPC = c.capC; CENTRE = !!c.centre;
+    SYM = CAPR === CAPC ? 8 : 4;
+    // the rules changed, so every stored result is void
+    for (let p = 1; p <= 2; p++) { const t = TTS[p]; t.k1.fill(0); t.k2.fill(0); t.pn.fill(0); t.dn.fill(0); }
+  }
+
+  /* ----------------------------------------------------------- the search */
+  /* +1 X has won / wins in three, -1 X cannot win here, 0 open.
+     FORCED = the only sensible reply (blocking the single winning cell), or -1 */
+  let FORCED = -1;
+  function terminal(s) {
+    FORCED = -1;
+    if (s.drawn) return -1;
+    if (s.pR || s.pC) return 0;
+    const me = s.turn, op = 3 - me, win = me === X ? 1 : -1;
+    if (threats(s, me) > 0) return win;
+    const n = threats(s, op);
+    if (n >= 2) return -win;
+    const forced = n === 1 ? tCell : -1;
+    FORCED = forced;
+    if (w3Cell(s, forced) >= 0) return win;
+    return 0;
+  }
+  function children(s, forced) {
+    if (s.pR || s.pC) return extOptions(s).map(([rs, cs]) => extend(s, rs, cs));
+    if (forced >= 0) return [place(s, forced)];
+    const centre = centreOf(s), g = s.g, out = [];
+    for (let i = 0; i < g.length; i++) if (g[i] === 0 && i !== centre) out.push(place(s, i));
+    return out;
+  }
+  function init(s, k1, k2) {
+    if (lookup(k1, k2)) return;
+    const t = terminal(s);
+    if (t === 1) { LP = 0; LD = INF; store(k1, k2, 0, INF); return; }
+    if (t === -1) { LP = INF; LD = 0; store(k1, k2, INF, 0); return; }
+    let mob;
+    if (s.pR || s.pC) mob = (s.pR ? 2 : 1) * (s.pC ? 2 : 1);
+    else if (FORCED >= 0) mob = 1;
+    else { mob = 0; const g = s.g; for (let i = 0; i < g.length; i++) if (g[i] === 0) mob++; }
+    if (s.turn === X) { LP = 1; LD = mob; } else { LP = mob; LD = 1; }
+  }
+
+  let nodes = 0, deadline = Infinity, RP = 0, RD = 0;
+  function mid(n, k1, k2, thpn, thdn) {
+    if ((++nodes & 255) === 0 && now() > deadline) throw ABORT;
+    let term = terminal(n);
+    const forced = FORCED;
+    // first visit of a placing node: look for a chain of fours, for either side
+    if (term === 0 && !(n.pR || n.pC) && !lookup(k1, k2) && vcfMove(n) >= 0) term = n.turn === X ? 1 : -1;
+    if (term !== 0) { RP = term === 1 ? 0 : INF; RD = term === 1 ? INF : 0; store(k1, k2, RP, RD); return; }
+
+    const ch = children(n, forced), m = ch.length;
+    const ck1 = new Uint32Array(m), ck2 = new Uint32Array(m), lp = new Uint32Array(m), ld = new Uint32Array(m);
+    for (let i = 0; i < m; i++) { key(ch[i]); ck1[i] = K1; ck2[i] = K2; }
+    for (let i = 0; i < m; i++) { init(ch[i], ck1[i], ck2[i]); lp[i] = LP; ld[i] = LD; }
+    const orNode = n.turn === X;
+    for (;;) {
+      let pn, dn, best = -1, b1 = INF + 1, b2 = INF + 1, other = 0;
+      if (orNode) { pn = INF; dn = 0; } else { pn = 0; dn = INF; }
+      for (let i = 0; i < m; i++) {
+        let cp, cd;
+        if (lookup(ck1[i], ck2[i])) { lp[i] = cp = LP; ld[i] = cd = LD; } else { cp = lp[i]; cd = ld[i]; }
+        if (orNode) {
+          if (cp < pn) pn = cp;
+          dn = Math.min(INF, dn + cd);
+          if (cp < b1) { b2 = b1; b1 = cp; best = i; other = cd; } else if (cp < b2) b2 = cp;
+        } else {
+          if (cd < dn) dn = cd;
+          pn = Math.min(INF, pn + cp);
+          if (cd < b1) { b2 = b1; b1 = cd; best = i; other = cp; } else if (cd < b2) b2 = cd;
+        }
+      }
+      if (pn >= thpn || dn >= thdn || pn === 0 || dn === 0) { store(k1, k2, pn, dn); RP = pn; RD = dn; return; }
+      // the 1 + epsilon trick keeps the search from see-sawing between two children
+      const b2e = b2 >= INF ? INF : Math.min(INF, b2 + (b2 >>> 2) + 1);
+      let cthpn, cthdn;
+      if (orNode) { cthpn = Math.min(thpn, b2e); cthdn = Math.min(INF, thdn - dn + other); }
+      else        { cthdn = Math.min(thdn, b2e); cthpn = Math.min(INF, thpn - pn + other); }
+      mid(ch[best], ck1[best], ck2[best], cthpn, cthdn);
+      lp[best] = RP; ld[best] = RD;
+    }
+  }
+  /* can `who` force a win from s? 1 yes, -1 no, 0 not settled within ms */
+  function solve(s, who, ms) {
+    setX(who);
+    deadline = now() + Math.max(1, ms);
+    key(s);
+    const a = K1, b = K2;
+    try {
+      for (let th = 2; ; th = Math.min(INF, th * 2)) {
+        mid(s, a, b, th, th);
+        if (RP === 0) return 1;
+        if (RD === 0) return -1;
+      }
+    } catch (e) {
+      if (e === ABORT) return 0;
+      throw e;
+    } finally { deadline = Infinity; }
+  }
+  const proven = (s, who) => { setX(who); key(s); return lookup(K1, K2) && LP === 0; };
+
+  /* ------------------------------------------------------- choosing a move */
+  const fromPos = p => mk(p.R, p.C, Uint8Array.from(p.cells), p.turn, p.moves, !!p.pR, !!p.pC, false);
+
+  /* the proven winning continuation for the player to act, or null */
+  function winningStep(s) {
+    const me = s.turn;
+    setX(me);
+    if (s.pR || s.pC) {
+      for (const e of extOptions(s)) {
+        const u = extend(s, e[0], e[1]);
+        if (proven(u, me) || terminal(u) === 1) return { ext: e };
+      }
+      return null;
+    }
+    if (threats(s, me) > 0) return { cell: tCell };
+    const n = threats(s, 3 - me);
+    if (n >= 2) return null;
+    const forced = n === 1 ? tCell : -1;
+    const w3 = w3Cell(s, forced);
+    if (w3 >= 0) return { cell: w3 };
+    const v = vcfMove(s);
+    if (v >= 0) return { cell: v };
+    const centre = centreOf(s), g = s.g;
+    for (let i = 0; i < g.length; i++) {
+      if (g[i] !== 0 || i === centre || (forced >= 0 && i !== forced)) continue;
+      const t = place(s, i);
+      if (t.drawn) continue;
+      if (proven(t, me) || (!(t.pR || t.pC) && terminal(t) === 1)) return { cell: i };
+    }
+    return null;
+  }
+
+  /* how much is going on around cell i — used to try the busy cells first */
+  function nearness(s, i) {
+    const C = s.C, r0 = (i / C) | 0, c0 = i - r0 * C;
+    let v = 0;
+    for (let r = r0 - 2; r <= r0 + 2; r++) for (let c = c0 - 2; c <= c0 + 2; c++) {
+      if (r < 0 || r >= s.R || c < 0 || c >= C || s.g[r * C + c] === 0) continue;
+      v += Math.max(Math.abs(r - r0), Math.abs(c - c0)) === 1 ? 2 : 1;
+    }
+    return v + Math.random() * 0.5;
+  }
+
+  /* No proven win: defend.
+       1. a move after which the opponent can NOT force a win (if several, the
+          one closest to a win of our own);
+       2. otherwise every move loses against perfect play, so pick the one that
+          leaves them the fewest winning answers — one slip and the bot takes
+          over. A move nobody could settle in the time counts as one answer.  */
+  function defend(s, budget) {
+    const me = s.turn, op = 3 - me, start = now();
+    // every option is a complete turn — the mark plus, if it fills a line,
+    // the side the board grows to — so each is judged with the opponent to move
+    let opts;
+    if (s.pR || s.pC) opts = extOptions(s).map(e => ({ ext: e, st: extend(s, e[0], e[1]), near: 0 }));
+    else {
+      const n = threats(s, op);
+      if (n >= 1) return { cell: tCell, verdict: n >= 2 ? 'lost' : 'block' };
+      const centre = centreOf(s), g = s.g;
+      opts = [];
+      for (let i = 0; i < g.length; i++) {
+        if (g[i] !== 0 || i === centre) continue;
+        const t = place(s, i), near = nearness(s, i);
+        if (t.pR || t.pC) for (const e of extOptions(t)) opts.push({ cell: i, st: extend(t, e[0], e[1]), near });
+        else opts.push({ cell: i, st: t, near });
+      }
+    }
+    if (opts.length === 1) return pick(opts[0], 'only');
+    opts.sort((a, b) => b.near - a.near);
+
+    // 1. can they force a win after each option? Round robin with growing
+    //    slices, so no single hard option eats the whole budget.
+    for (const x of opts) { x.effort = 0; x.res = 0; if (x.st.drawn) { x.res = -1; x.draw = true; } }
+    const end1 = start + budget * 0.6;
+    for (let slice = 15; now() < end1; slice *= 2) {
+      const todo = opts.filter(x => x.res === 0);
+      if (!todo.length) break;
+      for (const x of todo) {
+        const left = end1 - now();
+        if (left <= 0) break;
+        const before = nodes;
+        x.res = solve(x.st, op, Math.min(slice, left));
+        x.effort += nodes - before;
+      }
+      if (opts.some(x => x.res === -1)) break;
+    }
+    const safe = opts.filter(x => x.res === -1);
+    if (safe.length) {
+      for (const x of safe) { setX(me); key(x.st); lookup(K1, K2); x.mine = x.draw ? INF : LP; }
+      safe.sort((a, b) => a.mine - b.mine || b.near - a.near);
+      return pick(safe[0], 'hold');
+    }
+
+    // 2. count their winning answers, the hardest-to-refute options first
+    const end2 = start + budget;
+    opts.sort((a, b) => b.effort - a.effort);
+    for (const x of opts) {
+      if (x.res !== 1) { x.answers = 1; continue; }
+      if (now() > end2 || x.st.pR || x.st.pC || x.st.turn !== op) continue;
+      let wins = 0, done = true;
+      for (const t of children(x.st, -1)) {
+        const left = end2 - now();
+        if (left <= 0) { done = false; break; }
+        const r = solve(t, op, Math.max(5, left / 3));
+        if (r === 1) wins++;
+        else if (r === 0) { done = false; break; }
+      }
+      if (done) x.answers = wins;
+    }
+    opts.sort((a, b) => (a.answers ?? 99) - (b.answers ?? 99) || b.effort - a.effort);
+    lastOpts = opts.map(x => ({ cell: x.cell, ext: x.ext, res: x.res, effort: x.effort, answers: x.answers }));
+    return pick(opts[0], 'resist');
+  }
+  let lastOpts = null;
+  const pick = (x, verdict) => (x.ext ? { ext: x.ext, verdict } : { cell: x.cell, verdict });
+
+  /* The first mark of each side comes from the offline proofs (README §1),
+     which saves the longest searches of the game:
+       · the bot opens on the middle of an edge — or in the centre when that is
+         allowed — both forced wins;
+       · the bot answers any opening in the centre: against a corner that is
+         the only winning reply, against an edge it is the toughest defence
+         (just two of the opener's answers keep their win);
+       · after a corner, one more proven move (cornerThenEdge below).
+     Everything after that is searched live. */
+  function opening(s) {
+    if (s.R !== 3 || s.C !== 3) return null;
+    const me = s.turn, g = s.g, mine = [], theirs = [];
+    for (let i = 0; i < 9; i++) if (g[i] === me) mine.push(i); else if (g[i] !== 0) theirs.push(i);
+    if (!s.pR && !s.pC) {
+      if (s.moves === 0 && !mine.length && !theirs.length) {
+        if (!CENTRE) return { cell: 4, verdict: 'book' };
+        return { cell: [1, 3, 5, 7][Math.floor(Math.random() * 4)], verdict: 'book' };
+      }
+      if (s.moves === 1 && theirs.length === 1 && g[4] === 0) return { cell: 4, verdict: 'book' };
+      const e = cornerThenEdge(mine, theirs);
+      if (s.moves === 3 && mine.length === 1 && e >= 0) return { cell: 8 - e, verdict: 'book' };
+    } else if (s.moves === 4 && mine.length === 2) {
+      const b = mine.find(i => i !== 4), e = cornerThenEdge([4], theirs);
+      if (e >= 0 && b === 8 - e) {
+        const ext = b === 1 ? [0, -1] : b === 7 ? [1, -1] : b === 3 ? [-1, 0] : [-1, 1];
+        if (ext[0] >= 0 ? (s.pR && !s.pC) : (s.pC && !s.pR)) return { ext, verdict: 'book' };
+      }
+    }
+    return null;
+  }
+  /* You opened in a corner, the bot took the centre, and your second mark is
+     the edge right beside your corner: the proven answer is the opposite edge
+     (cell 8 - edge), growing the board beyond it. Without this the bot needs
+     its longest search of the game here (about 130 000 positions); after it,
+     the rest of the proof is about 14 000. Proven for square limits of 8 × 8
+     and more, so only used there. Returns that edge, or -1. */
+  function cornerThenEdge(mine, theirs) {
+    if (CAPR !== CAPC || CAPR < 8 || mine.length !== 1 || mine[0] !== 4 || theirs.length !== 2) return -1;
+    const corner = theirs.find(i => i !== 4 && i % 2 === 0), edge = theirs.find(i => i % 2 === 1);
+    if (corner === undefined || edge === undefined) return -1;
+    const dr = Math.abs(((corner / 3) | 0) - ((edge / 3) | 0)), dc = Math.abs((corner % 3) - (edge % 3));
+    return dr + dc === 1 ? edge : -1;
+  }
+
+  /* one step for the player to act: { cell } or { ext: [rs, cs] } */
+  function decide(p, opts) {
+    configure(p.cfg);
+    stopPonder();
+    const s = fromPos(p);
+    return opening(s) || think(s, opts.winMs, opts.thinkMs);
+  }
+  function think(s, winMs, thinkMs) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const r = solve(s, s.turn, winMs);
+      if (r !== 1) break;
+      const w = winningStep(s);
+      if (w) { w.verdict = 'win'; return w; }
+    }
+    return defend(s, thinkMs);
+  }
+
+  /* ------------------------------------------------------------ pondering
+     While the human thinks, the engine works ahead: first it settles whether
+     the bot can force a win from here, then it goes through the human's
+     possible replies (most natural ones first) and thinks each one through as
+     if it had been played. Everything lands in the tables, so the real answer
+     is usually instant. */
+  let pond = null;
+  function startPonder(p, bot) {
+    configure(p.cfg);
+    pond = { s: fromPos(p), bot, phase: 0, list: null, i: 0 };
+  }
+  function stopPonder() { pond = null; }
+  /* every way the human can finish the turn — a mark, plus the extension if
+     owed — busiest cells first, as those are the natural replies */
+  function humanTurns(s) {
+    const out = [];
+    const add = (t, near) => {
+      if (t.drawn) return;
+      if (t.pR || t.pC) for (const [rs, cs] of extOptions(t)) out.push({ st: extend(t, rs, cs), near });
+      else out.push({ st: t, near });
+    };
+    if (s.pR || s.pC) add(s, 0);
+    else {
+      const centre = centreOf(s), g = s.g;
+      for (let i = 0; i < g.length; i++) if (g[i] === 0 && i !== centre) add(place(s, i), nearness(s, i));
+    }
+    return out.sort((a, b) => b.near - a.near).map(x => x.st);
+  }
+  /* works for about ms; true while there is more to do */
+  function ponderSlice(ms) {
+    if (!pond) return false;
+    const end = now() + ms;
+    while (pond && now() < end) {
+      if (pond.phase === 0) {
+        const r = solve(pond.s, pond.bot, end - now());
+        if (r === 0) return true;
+        // a proven win already covers every reply; otherwise prepare the defence
+        if (r === 1 || pond.s.turn === pond.bot) { pond = null; return false; }
+        pond.phase = 1;
+        pond.list = humanTurns(pond.s);
+      } else {
+        if (pond.i >= pond.list.length) { pond = null; return false; }
+        // one reply at a time, in short bursts so a real request is never
+        // kept waiting long; the work is kept in the tables
+        const t = pond.list[pond.i++];
+        if (!opening(t)) think(t, 250, 450);
+        return true;
+      }
+    }
+    return !!pond;
+  }
+
+  const api = {
+    decide, startPonder, stopPonder, ponderSlice, configure,
+    // for testing from the console
+    solve: (p, who, ms) => { configure(p.cfg); return solve(fromPos(p), who, ms); },
+    stats: () => ({ nodes, lastOpts }),
+  };
+
+  /* inside a Web Worker: answer messages, ponder in the gaps */
+  if (typeof importScripts === 'function') {
+    let timer = 0;
+    const loop = () => { timer = 0; if (ponderSlice(40)) timer = setTimeout(loop, 0); };
+    self.onmessage = e => {
+      const m = e.data;
+      if (m.type === 'decide') {
+        clearTimeout(timer); timer = 0;
+        const t0 = now();
+        let move;
+        try { move = decide(m.pos, m.opts); } catch (err) { move = { error: String(err) }; }
+        self.postMessage({ id: m.id, move, ms: Math.round(now() - t0) });
+      } else if (m.type === 'ponder') {
+        startPonder(m.pos, m.bot);
+        clearTimeout(timer); timer = setTimeout(loop, 0);
+      } else if (m.type === 'stop') {
+        stopPonder(); clearTimeout(timer); timer = 0;
+      }
+    };
+  }
+  return api;
+}
+
+/* ---------------------------------------------------------------------------
+   The page side: one shared engine. Prefers a Web Worker (the board stays
+   responsive while the bot thinks); falls back to running on the page.
+   --------------------------------------------------------------------------- */
+const BotEngine = (() => {
+  /* Time limits per step. Below 6 × 6 nobody can force a win, so a long hunt
+     for one would only make the bot slow — it gets a short look instead. */
+  const think = (pos, page) => {
+    const small = Math.min(pos.cfg.capR, pos.cfg.capC) < 6;
+    return page ? { winMs: small ? 1000 : 4000, thinkMs: 900 } : { winMs: small ? 1500 : 6000, thinkMs: 1600 };
+  };
+  let worker = null, tried = false, local = null, seq = 0, pondTimer = 0;
+  const waiting = new Map();
+
+  function startWorker() {
+    if (tried) return worker;
+    tried = true;
+    try {
+      const src = '(' + ExtendOXEngine.toString() + ')();';
+      const w = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+      w.onmessage = e => {
+        const job = waiting.get(e.data.id);
+        if (!job) return;
+        waiting.delete(e.data.id);
+        if (e.data.move && !e.data.move.error) job.cb(e.data.move);
+        else onPageDecide(job.pos, job.cb);
+      };
+      // the worker could not start or died (some browsers refuse workers for
+      // pages opened straight from a file): carry on without it
+      w.onerror = e => {
+        if (e && e.preventDefault) e.preventDefault();
+        worker = null;
+        const jobs = [...waiting.values()];
+        waiting.clear();
+        jobs.forEach(j => onPageDecide(j.pos, j.cb));
+      };
+      return w;
+    } catch { return null; }
+  }
+  const onPage = () => local || (local = ExtendOXEngine());
+  /* no worker: think on the page, a little more briefly */
+  function onPageDecide(pos, cb) {
+    setTimeout(() => {
+      let move = null;
+      try { move = onPage().decide(pos, think(pos, true)); } catch { move = null; }
+      cb(move);
+    }, 0);
+  }
+
+  /* cb(move) — move is { cell } / { ext: [rs, cs] }, or null if it failed */
+  function decide(pos, cb) {
+    worker = startWorker();
+    clearTimeout(pondTimer); pondTimer = 0;
+    if (!worker) return onPageDecide(pos, cb);
+    const id = ++seq;
+    waiting.set(id, { pos, cb });
+    worker.postMessage({ type: 'decide', id, pos, opts: think(pos, false) });
+  }
+  function ponder(pos, bot) {
+    worker = startWorker();
+    if (worker) { worker.postMessage({ type: 'ponder', pos, bot }); return; }
+    const e = onPage();
+    e.startPonder(pos, bot);
+    clearTimeout(pondTimer);
+    const loop = () => { pondTimer = e.ponderSlice(12) ? setTimeout(loop, 4) : 0; };
+    pondTimer = setTimeout(loop, 30);
+  }
+  function stopPonder() {
+    if (worker) worker.postMessage({ type: 'stop' });
+    clearTimeout(pondTimer); pondTimer = 0;
+    if (local) local.stopPonder();
+  }
+  return { decide, ponder, stopPonder, onPage };
+})();
 
   </script>
   <script>
@@ -1205,11 +1894,16 @@ const limits = () => S.unlimited
 /* marks in a row needed to win, for the mode currently selected */
 const winLen = () => MODES[S.mode].win;
 
-function newGame(bot) {
+/* the Difficult bot exists for 4 in a row only — that is the game it has solved */
+const hardOffered = () => winLen() === 4;
+
+function newGame(bot, level) {
   const secs = S.minutes * 60;
   return {
     winLen: winLen(),       // frozen for the whole match
     bot: !!bot,             // playing against the bot — no clock in that mode
+    // 'easy' = the rule-based bot, 'hard' = the perfect-play engine (engine.js)
+    level: bot ? (level === 'hard' && hardOffered() ? 'hard' : 'easy') : null,
     human: bot ? S.humanPiece : null,
     botP:  bot ? other(S.humanPiece) : null,
     rows: 3, cols: 3,
@@ -1363,7 +2057,7 @@ function undo() {
   render();
 }
 
-/* =================================== bot ===================================
+/* ============================ bot (Easy level) =============================
    Placement, in this order:
      1  never the centre on move 1 while that rule is on
      2  win now if a mark completes a line
@@ -1486,6 +2180,9 @@ function cancelBot() { clearTimeout(botTimer); botTimer = 0; botToken++; }
 
 const botsTurn = g => g && g.bot && !g.over && g.turn === g.botP;
 const botIdle = () => botsTurn(S.game) && S.screen === 'game' && !S.dialog;
+/* the Difficult bot may think for several seconds — the watchdog must not
+   mistake that for a stalled timer */
+const botStallMs = () => (S.game && S.game.level === 'hard' ? 25000 : 4000);
 
 function maybeBotTurn() {
   const g = S.game;
@@ -1493,16 +2190,77 @@ function maybeBotTurn() {
   const token = botToken;
   const owes = g.pendRow || g.pendCol;
   botArmedAt = Date.now();
+  if (g.level === 'hard') return hardBotTurn(token, owes ? BOT_EXTEND_MS : BOT_MOVE_MS);
   botTimer = setTimeout(() => {
     botTimer = 0;
     const gg = S.game;
     if (token !== botToken || !botsTurn(gg) || S.screen !== 'game' || S.dialog) return;
-    if (gg.pendRow || gg.pendCol) extend(botChooseSide(gg, gg.pendRow));
-    else {
-      const m = botChooseMove(gg);
-      if (m) place(m[0], m[1]);
-    }
+    easyBotStep(gg);
   }, owes ? BOT_EXTEND_MS : BOT_MOVE_MS);
+}
+
+function easyBotStep(g) {
+  if (g.pendRow || g.pendCol) extend(botChooseSide(g, g.pendRow));
+  else {
+    const m = botChooseMove(g);
+    if (m) place(m[0], m[1]);
+  }
+}
+
+/* ---- the Difficult bot (4 in a row): the proof-number engine in engine.js --
+   It is asked for every single step — a mark, or the side of an owed
+   extension — and its answer is played once the usual pause is over too, so
+   it looks and feels like the Easy bot, just stronger. While you think, the
+   engine keeps working on the position (pondering), so most answers are
+   instant. If the engine ever fails, the Easy rules stand in for that step. */
+
+/* the position as the engine sees it: 1 = O, 2 = X */
+function enginePos(g) {
+  const L = limits(), cells = [];
+  for (const row of g.grid) for (const v of row) cells.push(v === 'O' ? 1 : v === 'X' ? 2 : 0);
+  return {
+    R: g.rows, C: g.cols, cells, turn: g.turn === 'O' ? 1 : 2, moves: g.moveNo,
+    pR: g.pendRow, pC: g.pendCol,
+    cfg: { K: g.winLen, capR: L.maxRows, capC: L.maxCols, centre: S.blockCentre },
+  };
+}
+
+function hardBotTurn(token, pause) {
+  let move, answered = false, paused = false;
+  const act = () => {
+    if (!answered || !paused) return;
+    botTimer = 0;
+    const g = S.game;
+    if (token !== botToken || !botsTurn(g) || S.screen !== 'game' || S.dialog) return;
+    if (move && move.ext) {
+      const [rs, cs] = move.ext;
+      if (rs >= 0 && g.pendRow) return extend(rs === 0 ? 'top' : 'bottom');
+      if (cs >= 0 && g.pendCol) return extend(cs === 0 ? 'left' : 'right');
+    } else if (move && move.cell >= 0 && !(g.pendRow || g.pendCol)) {
+      const r = Math.floor(move.cell / g.cols), c = move.cell % g.cols;
+      if (r < g.rows && !g.grid[r][c]) return place(r, c);
+    }
+    easyBotStep(g);
+  };
+  botTimer = setTimeout(() => { paused = true; act(); }, pause);
+  BotEngine.decide(enginePos(S.game), m => {
+    if (token !== botToken) return;
+    move = m; answered = true; act();
+  });
+}
+
+/* on your turn in a Difficult game the engine works ahead on the position */
+let pondered = '';
+function maybePonder() {
+  const g = S.game;
+  if (!g || g.level !== 'hard' || g.over || g.turn !== g.human || S.screen !== 'game') {
+    if (pondered) { BotEngine.stopPonder(); pondered = ''; }
+    return;
+  }
+  const pos = enginePos(g), id = JSON.stringify(pos);
+  if (id === pondered) return;
+  pondered = id;
+  BotEngine.ponder(pos, g.botP === 'O' ? 1 : 2);
 }
 
 /* --------------------------------- clocks ---------------------------------- */
@@ -1514,7 +2272,7 @@ setInterval(() => {
   // Watchdog: the bot is normally armed by render(). If a step is ever missed —
   // a cancelled timer with no render behind it, a tab that was frozen — re-arm
   // it here so a bot game can never sit there waiting forever.
-  if (botIdle() && (!botTimer || now - botArmedAt > 4000)) { cancelBot(); maybeBotTurn(); }
+  if (botIdle() && (!botTimer || now - botArmedAt > botStallMs())) { cancelBot(); maybeBotTurn(); }
 
   // no clock in a bot game
   const running = g && S.timeLimit && !g.bot && !g.over && S.screen === 'game' && !S.dialog;
@@ -1551,6 +2309,7 @@ function render() {
   if (S.screen === 'game') layoutBoard();
   placeModeMenu();
   maybeBotTurn();
+  maybePonder();
 }
 
 /* Open a dropdown on whichever side has more room and cap its height so it can
@@ -1663,9 +2422,11 @@ function viewBotSetup() {
     <div class="home-brand">${brandStack()}</div>
 
     <div class="gap-brand"></div>
-    <div class="play-stack">
+    <div class="play-stack">${hardOffered() ? `
+      <button class="btn-play blue" data-act="play" data-bot="1" data-level="easy">${t('botEasy')}</button>
+      <button class="btn-play blue" data-act="play" data-bot="1" data-level="hard">${t('botHard')}</button>` : `
       <button class="btn-play red slot-ghost" aria-hidden="true" tabindex="-1">${t('playNow')}</button>
-      <button class="btn-play blue" data-act="play" data-bot="1">${t('playBot')}</button>
+      <button class="btn-play blue" data-act="play" data-bot="1" data-level="easy">${t('playBot')}</button>`}
     </div>
     <div class="gap-play"></div>
 
@@ -1711,7 +2472,7 @@ function announcement() {
     <div class="party">${art}</div>
     <div class="col">
       <div class="who">${who}</div>
-      <button class="btn-play${g.bot ? ' blue' : ''}" data-act="play" ${g.bot ? 'data-bot="1"' : ''}>${t('playAgain')}</button>
+      <button class="btn-play${g.bot ? ' blue' : ''}" data-act="play" ${g.bot ? `data-bot="1" data-level="${g.level}"` : ''}>${t('playAgain')}</button>
     </div>
   </div>`;
 }
@@ -2120,9 +2881,6 @@ function viewTutorial() {
     <h3>${t('t_zoomH')}</h3>
     <div class="card">${t('t_zoomB')}</div>
 
-    <h3>${t('t_botH')}</h3>
-    <div class="card">${t('t_botB')}</div>
-
     <h3>${t('t_winH')}</h3>
     <div class="card">${t('t_winB', W)}<div class="mini">${miniBoard(WIN, null, W > 5 ? 27 : 30)}</div></div>
 
@@ -2189,7 +2947,7 @@ $app.addEventListener('click', e => {
                         S.screen = el.dataset.to; S.dialog = null; S.modeOpen = S.langOpen = false; break;
     case 'back':        S.screen = S.stack.pop() || 'home'; break;
     case 'play':        cancelBot();
-                        S.game = newGame(el.dataset.bot === '1');
+                        S.game = newGame(el.dataset.bot === '1', el.dataset.level);
                         S.stack = []; S.screen = 'game'; S.modeOpen = S.langOpen = false;
                         S.dialog = null; S.lastPlaced = null; resetView(); clockRef = Date.now(); break;
 
